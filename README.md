@@ -32,6 +32,12 @@ Needs AWS CLI, Python 3, Node 20+, credentials, and Bedrock access to the model 
 ## API
 `GET /health`, `GET /api/cases`, `POST /api/decide` (omit `proposed_decision` to ask the live agent), `POST /api/evaluate`, `GET /api/report`.
 
+## Case 1 - Solution 
+
+You can call the Scheduling API via Programatically - Currently I mocked the available Slot
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/5f0ca145-3524-4845-9f1e-d998c1adcbea" />
+
+
 ## Limitations
 - Public, unauthenticated, throttled (5 rps) API: add auth before wider sharing.
 - Phrase checks are heuristics: no explicit-date parsing ("October 19th" vs weekday), paraphrase and negation gaps. Metrics are on synthetic fixtures, not live-LLM quality.
