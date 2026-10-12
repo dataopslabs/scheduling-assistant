@@ -5,6 +5,7 @@ from functools import lru_cache
 from pathlib import Path
 
 DATA_FILE = Path(__file__).resolve().parent.parent / "data" / "cases.json"
+DATASETS_FILE = Path(__file__).resolve().parent.parent / "data" / "datasets.json"
 
 
 @dataclass(frozen=True)

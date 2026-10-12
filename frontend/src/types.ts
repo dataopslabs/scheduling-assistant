@@ -2,7 +2,7 @@ export type Mode = "mock" | "live";
 export type Action = "reply" | "wait" | "escalate";
 export interface Slot { date?: string; day?: string; start_time?: string; time?: string }
 export interface Case {
-  case_id: string; category: string; customer_message: string;
+  case_id: string; use_case?: string | null; variant?: number | null; title?: string | null; category: string; customer_message: string;
   appointment: { date?: string | null; start_time?: string | null; end_time?: string | null; status?: string | null };
   crew: { confirmation_status?: string | null };
   available_slots: Slot[]; other_jobs: { job_id?: string; status?: string }[];
@@ -18,3 +18,5 @@ export interface Decision {
 }
 export interface HistoryRow { n: number; time: string; id: string; mode: Mode; source: string; proposed: Action; ok: boolean; rules: string[]; final: Action; ms: number }
 export interface AppConfig { model_id: string; region?: string | null; version: string }
+export interface BatchItem { case_id: string; title?: string | null; customer_message: string; expected_acceptable?: boolean | null; decision: Decision }
+export interface BatchResult { mode: Mode; total: number; approved: number; blocked: number; items: BatchItem[] }

@@ -14,11 +14,11 @@ const APPT = ["confirmed", "tentative", "pending", "none"];
 const CREW = ["confirmed", "unknown", "pending", "unconfirmed"];
 
 interface Props {
-  cases: Case[]; selected: string; onSelect: (id: string) => void; mode: Mode;
+  cases: Case[]; datasets: Case[]; selected: string; onSelect: (id: string) => void; mode: Mode;
   custom: CustomForm; onCustom: (c: CustomForm) => void; loadError: boolean;
 }
 
-export default function UseCasePanel({ cases, selected, onSelect, mode, custom, onCustom, loadError }: Props) {
+export default function UseCasePanel({ cases, datasets, selected, onSelect, mode, custom, onCustom, loadError }: Props) {
   const [q, setQ] = useState("");
   const groups = useMemo(() => {
     const f = q.trim().toLowerCase();
@@ -41,6 +41,7 @@ export default function UseCasePanel({ cases, selected, onSelect, mode, custom, 
             {items.map((c) => (
               <button key={c.case_id} className={"uc" + (selected === c.case_id ? " on" : "")} onClick={() => onSelect(c.case_id)}>
                 <div className="uc-top"><b>{c.case_id}</b>
+                  <span className="tag">{datasets.filter((d) => d.use_case === c.case_id).length} datasets</span>
                   {mode === "mock" && c.expected && <span className={"tag " + (c.expected.acceptable ? "ok" : "warn")}>{c.expected.acceptable ? "Valid reply" : "Unsafe reply"}</span>}
                 </div>
                 <p>“{c.customer_message}”</p>

@@ -1,4 +1,4 @@
-import type { AppConfig, Case, Decision, Mode } from "./types";
+import type { AppConfig, BatchResult, Case, Decision, Mode } from "./types";
 export const API = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8000").replace(/\/$/, "");
 
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
@@ -15,3 +15,6 @@ export const getConfig = () => req<AppConfig>("/api/config");
 export const getHealth = () => req<{ status: string }>("/health");
 export const decide = (mode: Mode, c: Case) =>
   req<Decision>("/api/decide", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode, case: c }) });
+export const getDatasets = () => req<Case[]>("/api/datasets");
+export const batch = (mode: Mode, use_case: string) =>
+  req<BatchResult>("/api/batch", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode, use_case }) });

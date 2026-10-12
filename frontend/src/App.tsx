@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { decide, getCases, getConfig, getHealth } from "./api";
-import type { AppConfig, Case, Decision, HistoryRow, Mode } from "./types";
+import { batch as runBatch, decide, getCases, getConfig, getDatasets, getHealth } from "./api";
+import type { AppConfig, BatchResult, Case, Decision, HistoryRow, Mode } from "./types";
 import TopBar from "./components/TopBar";
 import UseCasePanel, { CustomForm, DEFAULT_CUSTOM } from "./components/UseCasePanel";
 import ResponsePanel from "./components/ResponsePanel";
@@ -31,19 +31,27 @@ export default function App() {
   const [running, setRunning] = useState(false);
   const [error, setError] = useState("");
   const [history, setHistory] = useState<HistoryRow[]>([]);
+  const [datasets, setDatasets] = useState<Case[]>([]);
+  const [variantId, setVariantId] = useState<string | null>(null);
+  const [batch, setBatch] = useState<BatchResult | null>(null);
+  const [batchRunning, setBatchRunning] = useState(false);
 
   useEffect(() => {
     getHealth().then(() => setApi("up")).catch(() => setApi("down"));
     getConfig().then(setConfig).catch(() => {});
     getCases().then(setCases).catch(() => setLoadError(true));
+    getDatasets().then(setDatasets).catch(() => {});
   }, []);
 
+  const variants = useMemo(() => datasets.filter((d) => d.use_case === selected), [datasets, selected]);
   const scenario: Case | null = useMemo(
-    () => (selected === "custom" ? buildCustom(custom, mode) : cases.find((c) => c.case_id === selected) ?? null), [selected, custom, cases, mode]);
+    () => (selected === "custom" ? buildCustom(custom, mode)
+      : (variantId && datasets.find((d) => d.case_id === variantId)) || cases.find((c) => c.case_id === selected) || null), [selected, variantId, custom, cases, datasets, mode]);
 
-  const reset = () => { setResult(null); setError(""); };
+  const reset = () => { setResult(null); setError(""); setBatch(null); };
   const changeMode = (m: Mode) => { setMode(m); store.set("mode", m); reset(); };
-  const select = (id: string) => { setSelected(id); reset(); };
+  const select = (id: string) => { setSelected(id); setVariantId(null); reset(); };
+  const pickVariant = (id: string | null) => { setVariantId(id); reset(); };
 
   const run = useCallback(async () => {
     if (!scenario) return;
@@ -55,15 +63,25 @@ export default function App() {
     } catch (e: any) { setError(String(e.message || e)); } finally { setRunning(false); }
   }, [scenario, mode]);
 
+  const runAll = useCallback(async () => {
+    setBatchRunning(true); setError(""); setResult(null); setBatch(null);
+    try {
+      const b = await runBatch(mode, selected); setBatch(b);
+      setHistory((h) => [...b.items.map((i, k) => ({ n: (h[0]?.n ?? 0) + b.items.length - k, time: new Date().toLocaleTimeString(), id: i.case_id, mode, source: i.decision.evidence.source, proposed: i.decision.proposed_decision.action, ok: i.decision.acceptable, rules: i.decision.findings.map((x) => x.rule_id), final: i.decision.final_action, ms: i.decision.evidence.latency_ms })), ...h].slice(0, 40));
+    } catch (e: any) { setError(String(e.message || e)); } finally { setBatchRunning(false); }
+  }, [mode, selected]);
+  const inspect = (id: string) => { const it = batch?.items.find((i) => i.case_id === id); if (it) { setVariantId(id); setResult(it.decision); } };
+
   const facts = scenario ? (({ proposed_decision, expected, category, ...rest }) => rest)(scenario as any) : null;
 
   return (
     <div className="app">
       <TopBar mode={mode} onMode={changeMode} config={config} api={api} />
       <main className="panels">
-        <UseCasePanel cases={cases} selected={selected} onSelect={select} mode={mode} custom={custom} onCustom={(c) => { setCustom(c); reset(); }} loadError={loadError} />
+        <UseCasePanel cases={cases} datasets={datasets} selected={selected} onSelect={select} mode={mode} custom={custom} onCustom={(c) => { setCustom(c); reset(); }} loadError={loadError} />
         <ResponsePanel mode={mode} customer={scenario?.customer_message ?? ""} running={running} result={result} error={error} onRun={run}
-          model={config?.model_id} scenario={scenario} custom={selected === "custom"} />
+          model={config?.model_id} scenario={scenario} custom={selected === "custom"}
+          variants={variants} variantId={variantId} onVariant={pickVariant} onRunAll={runAll} batch={batch} batchRunning={batchRunning} onInspect={inspect} />
         <EvidencePanel facts={facts} result={result} history={history} running={running} />
       </main>
     </div>

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from ..config import get_settings
-from ..schemas import DecideRequest, DecisionResponse
+from ..schemas import BatchRequest, BatchResponse, DecideRequest, DecisionResponse
 from ..services import cases as case_repo
 from ..services.decision import decide as run_decision
 
@@ -44,3 +44,28 @@ def one_case(case_id: str):
     if not c:
         raise HTTPException(404, "case not found")
     return c
+
+
+@router.get("/api/datasets")
+def datasets(use_case: str | None = None):
+    """Synthetic dataset variants (>=3 per use case). Optional filter ?use_case=A-001."""
+    return case_repo.list_datasets(use_case)
+
+
+@router.post("/api/batch", response_model=BatchResponse)
+def batch(req: BatchRequest):
+    """Run several datasets through the agent (mock or live) and the policy. Max 10 per call (Lambda/API Gateway time limit)."""
+    from ..schemas import BatchItem, SchedulingCase
+    pool = case_repo.list_datasets(req.use_case) if req.use_case else [d for d in case_repo.list_datasets() if req.case_ids and d["case_id"] in req.case_ids]
+    if not pool:
+        raise HTTPException(404, "no matching datasets")
+    if len(pool) > 10:
+        raise HTTPException(422, "batch limited to 10 datasets per request")
+    items = []
+    for d in pool:
+        case = SchedulingCase.model_validate(d)
+        items.append(BatchItem(case_id=case.case_id, title=case.title, customer_message=case.customer_message,
+                               expected_acceptable=(d.get("expected") or {}).get("acceptable"),
+                               decision=run_decision(DecideRequest(mode=req.mode, case=case), get_settings())))
+    ok = sum(i.decision.acceptable for i in items)
+    return BatchResponse(mode=req.mode, total=len(items), approved=ok, blocked=len(items) - ok, items=items)

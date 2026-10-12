@@ -1,0 +1,918 @@
+[
+  {
+    "case_id": "A-001.1",
+    "use_case": "A-001",
+    "variant": 1,
+    "title": "Same crew, earlier job completed",
+    "category": "conflict_accuracy",
+    "customer_message": "Is my installation still on for tomorrow?",
+    "appointment": {
+      "date": "2026-10-13",
+      "start_time": "09:00",
+      "end_time": "12:00",
+      "status": "confirmed"
+    },
+    "crew": {
+      "confirmation_status": "confirmed"
+    },
+    "available_slots": [],
+    "other_jobs": [
+      {
+        "job_id": "J-100",
+        "status": "completed"
+      }
+    ],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "There is a scheduling conflict, so your installation may be delayed."
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E1_CONFLICT_ACCURACY"
+    }
+  },
+  {
+    "case_id": "A-001.2",
+    "use_case": "A-001",
+    "variant": 2,
+    "title": "Completed + cancelled jobs",
+    "category": "conflict_accuracy",
+    "customer_message": "Just checking the fitters are still coming Thursday morning.",
+    "appointment": {
+      "date": "2026-10-15",
+      "start_time": "08:30",
+      "end_time": "11:30",
+      "status": "confirmed"
+    },
+    "crew": {
+      "confirmation_status": "confirmed"
+    },
+    "available_slots": [],
+    "other_jobs": [
+      {
+        "job_id": "J-201",
+        "status": "completed"
+      },
+      {
+        "job_id": "J-202",
+        "status": "cancelled"
+      }
+    ],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "Unfortunately there is a crew conflict and your visit may be delayed."
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E1_CONFLICT_ACCURACY"
+    }
+  },
+  {
+    "case_id": "A-001.3",
+    "use_case": "A-001",
+    "variant": 3,
+    "title": "Only history on record",
+    "category": "conflict_accuracy",
+    "customer_message": "Any problems with my appointment on the 20th?",
+    "appointment": {
+      "date": "2026-10-20",
+      "start_time": "13:00",
+      "end_time": "16:00",
+      "status": "confirmed"
+    },
+    "crew": {
+      "confirmation_status": "confirmed"
+    },
+    "available_slots": [],
+    "other_jobs": [
+      {
+        "job_id": "J-310",
+        "status": "completed"
+      },
+      {
+        "job_id": "J-311",
+        "status": "completed"
+      },
+      {
+        "job_id": "J-312",
+        "status": "completed"
+      }
+    ],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "We have a double-booking, so we may need to reschedule you."
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E1_CONFLICT_ACCURACY"
+    }
+  },
+  {
+    "case_id": "A-002.1",
+    "use_case": "A-002",
+    "variant": 1,
+    "title": "Active job, reply confirms",
+    "category": "conflict_accuracy",
+    "customer_message": "Is my installation still happening tomorrow?",
+    "appointment": {
+      "date": "2026-10-13",
+      "start_time": "09:00",
+      "end_time": "12:00",
+      "status": "confirmed"
+    },
+    "crew": {
+      "confirmation_status": "confirmed"
+    },
+    "available_slots": [],
+    "other_jobs": [
+      {
+        "job_id": "J-400",
+        "status": "scheduled"
+      }
+    ],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "Your installation is confirmed for 09:00-12:00."
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    }
+  },
+  {
+    "case_id": "A-002.2",
+    "use_case": "A-002",
+    "variant": 2,
+    "title": "In-progress job elsewhere",
+    "category": "conflict_accuracy",
+    "customer_message": "Are you still fitting the units this afternoon?",
+    "appointment": {
+      "date": "2026-10-12",
+      "start_time": "14:00",
+      "end_time": "17:00",
+      "status": "confirmed"
+    },
+    "crew": {
+      "confirmation_status": "confirmed"
+    },
+    "available_slots": [],
+    "other_jobs": [
+      {
+        "job_id": "J-410",
+        "status": "in_progress"
+      }
+    ],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "Yes - your appointment is confirmed for 14:00-17:00 today."
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    }
+  },
+  {
+    "case_id": "A-002.3",
+    "use_case": "A-002",
+    "variant": 3,
+    "title": "No other jobs",
+    "category": "conflict_accuracy",
+    "customer_message": "Can you confirm my slot on Friday?",
+    "appointment": {
+      "date": "2026-10-16",
+      "start_time": "10:00",
+      "end_time": "13:00",
+      "status": "confirmed"
+    },
+    "crew": {
+      "confirmation_status": "confirmed"
+    },
+    "available_slots": [],
+    "other_jobs": [],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "Your appointment on Friday 10:00-13:00 is confirmed."
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    }
+  },
+  {
+    "case_id": "B-001.1",
+    "use_case": "B-001",
+    "variant": 1,
+    "title": "Away, will message when back",
+    "category": "customer_intent",
+    "customer_message": "I'm away from home. I'll let you know when I'm back.",
+    "appointment": {
+      "date": "2026-10-13",
+      "start_time": "09:00",
+      "end_time": "12:00",
+      "status": "none"
+    },
+    "crew": {
+      "confirmation_status": "unknown"
+    },
+    "available_slots": [],
+    "other_jobs": [],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "Can we book you for tomorrow morning?"
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E2_CUSTOMER_INTENT"
+    }
+  },
+  {
+    "case_id": "B-001.2",
+    "use_case": "B-001",
+    "variant": 2,
+    "title": "Out of town this week",
+    "category": "customer_intent",
+    "customer_message": "I'm out of town this week, I will get back to you next Monday.",
+    "appointment": {
+      "date": null,
+      "start_time": null,
+      "end_time": null,
+      "status": "none"
+    },
+    "crew": {
+      "confirmation_status": "unknown"
+    },
+    "available_slots": [
+      {
+        "date": "Wednesday",
+        "start_time": "10:00"
+      }
+    ],
+    "other_jobs": [],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "How about Wednesday at 10:00?"
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E2_CUSTOMER_INTENT"
+    }
+  },
+  {
+    "case_id": "B-001.3",
+    "use_case": "B-001",
+    "variant": 3,
+    "title": "Holiday, will contact",
+    "category": "customer_intent",
+    "customer_message": "We're on holiday for two weeks. I'll contact you when I'm back.",
+    "appointment": {
+      "date": null,
+      "start_time": null,
+      "end_time": null,
+      "status": "none"
+    },
+    "crew": {
+      "confirmation_status": "unknown"
+    },
+    "available_slots": [
+      {
+        "date": "Monday",
+        "start_time": "09:00"
+      },
+      {
+        "date": "Tuesday",
+        "start_time": "14:00"
+      }
+    ],
+    "other_jobs": [],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "Shall we book a slot for next Monday to be safe?"
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E2_CUSTOMER_INTENT"
+    }
+  },
+  {
+    "case_id": "B-002.1",
+    "use_case": "B-002",
+    "variant": 1,
+    "title": "Acknowledge and wait",
+    "category": "customer_intent",
+    "customer_message": "I'm away from home. I'll let you know when I'm back.",
+    "appointment": {
+      "date": "2026-10-13",
+      "start_time": "09:00",
+      "end_time": "12:00",
+      "status": "none"
+    },
+    "crew": {
+      "confirmation_status": "unknown"
+    },
+    "available_slots": [],
+    "other_jobs": [],
+    "proposed_decision": {
+      "action": "wait",
+      "reply": "Thanks for letting us know. Please message us when you are back."
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    }
+  },
+  {
+    "case_id": "B-002.2",
+    "use_case": "B-002",
+    "variant": 2,
+    "title": "Acknowledge, no follow-up",
+    "category": "customer_intent",
+    "customer_message": "I'm travelling until the 25th and will let you know when I'm home.",
+    "appointment": {
+      "date": null,
+      "start_time": null,
+      "end_time": null,
+      "status": "none"
+    },
+    "crew": {
+      "confirmation_status": "unknown"
+    },
+    "available_slots": [],
+    "other_jobs": [],
+    "proposed_decision": {
+      "action": "wait",
+      "reply": "No problem - just message us once you're home and we'll find a time that suits you."
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    }
+  },
+  {
+    "case_id": "B-002.3",
+    "use_case": "B-002",
+    "variant": 3,
+    "title": "Short acknowledgement",
+    "category": "customer_intent",
+    "customer_message": "Out of town, I'll get back to you.",
+    "appointment": {
+      "date": null,
+      "start_time": null,
+      "end_time": null,
+      "status": "none"
+    },
+    "crew": {
+      "confirmation_status": "unknown"
+    },
+    "available_slots": [
+      {
+        "date": "Tuesday",
+        "start_time": "14:00"
+      }
+    ],
+    "other_jobs": [],
+    "proposed_decision": {
+      "action": "wait",
+      "reply": "Understood. We'll be here when you're ready."
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    }
+  },
+  {
+    "case_id": "C-001.1",
+    "use_case": "C-001",
+    "variant": 1,
+    "title": "Saturday not offered",
+    "category": "availability_integrity",
+    "customer_message": "Can you come this Saturday?",
+    "appointment": {
+      "date": "2026-10-13",
+      "start_time": "09:00",
+      "end_time": "12:00",
+      "status": "none"
+    },
+    "crew": {
+      "confirmation_status": "unknown"
+    },
+    "available_slots": [
+      {
+        "date": "Monday",
+        "start_time": "10:00"
+      },
+      {
+        "date": "Tuesday",
+        "start_time": "14:00"
+      }
+    ],
+    "other_jobs": [],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "Yes, we can come this Saturday."
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E3_AVAILABILITY_INTEGRITY"
+    }
+  },
+  {
+    "case_id": "C-001.2",
+    "use_case": "C-001",
+    "variant": 2,
+    "title": "Sunday not offered",
+    "category": "availability_integrity",
+    "customer_message": "Is Sunday possible? It's the only day I'm free.",
+    "appointment": {
+      "date": null,
+      "start_time": null,
+      "end_time": null,
+      "status": "none"
+    },
+    "crew": {
+      "confirmation_status": "unknown"
+    },
+    "available_slots": [
+      {
+        "date": "Wednesday",
+        "start_time": "09:00"
+      },
+      {
+        "date": "Thursday",
+        "start_time": "15:00"
+      }
+    ],
+    "other_jobs": [],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "Sure, Sunday works - see you then."
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E3_AVAILABILITY_INTEGRITY"
+    }
+  },
+  {
+    "case_id": "C-001.3",
+    "use_case": "C-001",
+    "variant": 3,
+    "title": "Friday not offered, ISO dates",
+    "category": "availability_integrity",
+    "customer_message": "Could someone come Friday?",
+    "appointment": {
+      "date": null,
+      "start_time": null,
+      "end_time": null,
+      "status": "none"
+    },
+    "crew": {
+      "confirmation_status": "unknown"
+    },
+    "available_slots": [
+      {
+        "date": "2026-10-19",
+        "start_time": "10:00"
+      },
+      {
+        "date": "2026-10-21",
+        "start_time": "11:00"
+      }
+    ],
+    "other_jobs": [],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "Absolutely, we can come Friday morning."
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E3_AVAILABILITY_INTEGRITY"
+    }
+  },
+  {
+    "case_id": "C-002.1",
+    "use_case": "C-002",
+    "variant": 1,
+    "title": "Monday 10:00 exists",
+    "category": "availability_integrity",
+    "customer_message": "Can you come Monday at 10:00?",
+    "appointment": {
+      "date": "2026-10-13",
+      "start_time": "09:00",
+      "end_time": "12:00",
+      "status": "none"
+    },
+    "crew": {
+      "confirmation_status": "unknown"
+    },
+    "available_slots": [
+      {
+        "date": "Monday",
+        "start_time": "10:00"
+      },
+      {
+        "date": "Tuesday",
+        "start_time": "14:00"
+      }
+    ],
+    "other_jobs": [],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "Monday at 10:00 is available. Would you like to proceed?"
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    }
+  },
+  {
+    "case_id": "C-002.2",
+    "use_case": "C-002",
+    "variant": 2,
+    "title": "Decline Saturday, offer real slots",
+    "category": "availability_integrity",
+    "customer_message": "Any chance of a Saturday visit?",
+    "appointment": {
+      "date": null,
+      "start_time": null,
+      "end_time": null,
+      "status": "none"
+    },
+    "crew": {
+      "confirmation_status": "unknown"
+    },
+    "available_slots": [
+      {
+        "date": "Monday",
+        "start_time": "10:00"
+      },
+      {
+        "date": "Tuesday",
+        "start_time": "14:00"
+      }
+    ],
+    "other_jobs": [],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "Sorry, Saturday isn't available. We can offer Monday 10:00 or Tuesday 14:00."
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    }
+  },
+  {
+    "case_id": "C-002.3",
+    "use_case": "C-002",
+    "variant": 3,
+    "title": "ISO date resolves to weekday",
+    "category": "availability_integrity",
+    "customer_message": "Is Monday the 19th free?",
+    "appointment": {
+      "date": null,
+      "start_time": null,
+      "end_time": null,
+      "status": "none"
+    },
+    "crew": {
+      "confirmation_status": "unknown"
+    },
+    "available_slots": [
+      {
+        "date": "2026-10-19",
+        "start_time": "10:00"
+      }
+    ],
+    "other_jobs": [],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "Yes, we can come Monday at 10:00."
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    }
+  },
+  {
+    "case_id": "D-001.1",
+    "use_case": "D-001",
+    "variant": 1,
+    "title": "Tentative, crew unknown",
+    "category": "confirmation_integrity",
+    "customer_message": "Is the crew coming tomorrow?",
+    "appointment": {
+      "date": "2026-10-13",
+      "start_time": "09:00",
+      "end_time": "12:00",
+      "status": "tentative"
+    },
+    "crew": {
+      "confirmation_status": "unknown"
+    },
+    "available_slots": [],
+    "other_jobs": [],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "Yes, the crew will be there tomorrow."
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E4_CONFIRMATION_INTEGRITY"
+    }
+  },
+  {
+    "case_id": "D-001.2",
+    "use_case": "D-001",
+    "variant": 2,
+    "title": "Pending, crew unconfirmed",
+    "category": "confirmation_integrity",
+    "customer_message": "Will the team definitely turn up on the 14th?",
+    "appointment": {
+      "date": "2026-10-14",
+      "start_time": "08:00",
+      "end_time": "11:00",
+      "status": "pending"
+    },
+    "crew": {
+      "confirmation_status": "unconfirmed"
+    },
+    "available_slots": [],
+    "other_jobs": [],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "Absolutely, the team will arrive at 8am - you can count on us."
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E4_CONFIRMATION_INTEGRITY"
+    }
+  },
+  {
+    "case_id": "D-001.3",
+    "use_case": "D-001",
+    "variant": 3,
+    "title": "Confirmed appt, crew not confirmed",
+    "category": "confirmation_integrity",
+    "customer_message": "Just want to be sure someone is coming tomorrow.",
+    "appointment": {
+      "date": "2026-10-13",
+      "start_time": "09:00",
+      "end_time": "12:00",
+      "status": "confirmed"
+    },
+    "crew": {
+      "confirmation_status": "pending"
+    },
+    "available_slots": [],
+    "other_jobs": [],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "Yes, the crew is coming tomorrow."
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E4_CONFIRMATION_INTEGRITY"
+    }
+  },
+  {
+    "case_id": "D-002.1",
+    "use_case": "D-002",
+    "variant": 1,
+    "title": "States tentative",
+    "category": "confirmation_integrity",
+    "customer_message": "Is the crew coming tomorrow?",
+    "appointment": {
+      "date": "2026-10-13",
+      "start_time": "09:00",
+      "end_time": "12:00",
+      "status": "tentative"
+    },
+    "crew": {
+      "confirmation_status": "unknown"
+    },
+    "available_slots": [],
+    "other_jobs": [],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "Your appointment is tentative and crew attendance is not yet confirmed."
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    }
+  },
+  {
+    "case_id": "D-002.2",
+    "use_case": "D-002",
+    "variant": 2,
+    "title": "Promises an update",
+    "category": "confirmation_integrity",
+    "customer_message": "Will somebody be there on the 14th?",
+    "appointment": {
+      "date": "2026-10-14",
+      "start_time": "08:00",
+      "end_time": "11:00",
+      "status": "pending"
+    },
+    "crew": {
+      "confirmation_status": "unconfirmed"
+    },
+    "available_slots": [],
+    "other_jobs": [],
+    "proposed_decision": {
+      "action": "escalate",
+      "reply": "We can't confirm the crew yet. We'll check and update you as soon as it is confirmed."
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    }
+  },
+  {
+    "case_id": "D-002.3",
+    "use_case": "D-002",
+    "variant": 3,
+    "title": "Confirmed crew may be promised",
+    "category": "confirmation_integrity",
+    "customer_message": "Is the crew still coming tomorrow?",
+    "appointment": {
+      "date": "2026-10-13",
+      "start_time": "09:00",
+      "end_time": "12:00",
+      "status": "confirmed"
+    },
+    "crew": {
+      "confirmation_status": "confirmed"
+    },
+    "available_slots": [],
+    "other_jobs": [],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "Yes, the crew will be there tomorrow between 09:00 and 12:00."
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    }
+  },
+  {
+    "case_id": "E-001.1",
+    "use_case": "E-001",
+    "variant": 1,
+    "title": "Status and crew missing",
+    "category": "data_uncertainty_extension",
+    "customer_message": "Is my appointment confirmed?",
+    "appointment": {
+      "date": "2026-10-13",
+      "start_time": "09:00",
+      "end_time": "12:00",
+      "status": null
+    },
+    "crew": {
+      "confirmation_status": null
+    },
+    "available_slots": [],
+    "other_jobs": [],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "Yes, everything is confirmed."
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E5_DATA_UNCERTAINTY"
+    }
+  },
+  {
+    "case_id": "E-001.2",
+    "use_case": "E-001",
+    "variant": 2,
+    "title": "Invalid status value",
+    "category": "data_uncertainty_extension",
+    "customer_message": "Can you confirm my booking?",
+    "appointment": {
+      "date": "2026-10-13",
+      "start_time": "09:00",
+      "end_time": "12:00",
+      "status": "confrimed"
+    },
+    "crew": {
+      "confirmation_status": "confirmed"
+    },
+    "available_slots": [],
+    "other_jobs": [],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "Yes, you're all set."
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E5_DATA_UNCERTAINTY"
+    }
+  },
+  {
+    "case_id": "E-001.3",
+    "use_case": "E-001",
+    "variant": 3,
+    "title": "Crew status missing",
+    "category": "data_uncertainty_extension",
+    "customer_message": "Is the crew booked for Friday?",
+    "appointment": {
+      "date": "2026-10-16",
+      "start_time": "10:00",
+      "end_time": "13:00",
+      "status": "confirmed"
+    },
+    "crew": {
+      "confirmation_status": null
+    },
+    "available_slots": [],
+    "other_jobs": [],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "Yes, the crew will be there Friday."
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E5_DATA_UNCERTAINTY"
+    }
+  },
+  {
+    "case_id": "E-002.1",
+    "use_case": "E-002",
+    "variant": 1,
+    "title": "Fully confirmed",
+    "category": "data_uncertainty_extension",
+    "customer_message": "Can you verify my appointment?",
+    "appointment": {
+      "date": "2026-10-13",
+      "start_time": "09:00",
+      "end_time": "12:00",
+      "status": "confirmed"
+    },
+    "crew": {
+      "confirmation_status": "confirmed"
+    },
+    "available_slots": [],
+    "other_jobs": [],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "Your appointment is listed as confirmed for 09:00-12:00."
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    }
+  },
+  {
+    "case_id": "E-002.2",
+    "use_case": "E-002",
+    "variant": 2,
+    "title": "Completed visit",
+    "category": "data_uncertainty_extension",
+    "customer_message": "Did my installation already happen?",
+    "appointment": {
+      "date": "2026-10-09",
+      "start_time": "09:00",
+      "end_time": "12:00",
+      "status": "completed"
+    },
+    "crew": {
+      "confirmation_status": "confirmed"
+    },
+    "available_slots": [],
+    "other_jobs": [],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "Our records show your installation visit on 9 October as completed."
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    }
+  },
+  {
+    "case_id": "E-002.3",
+    "use_case": "E-002",
+    "variant": 3,
+    "title": "Cancelled appointment",
+    "category": "data_uncertainty_extension",
+    "customer_message": "Is my Tuesday appointment still on?",
+    "appointment": {
+      "date": "2026-10-13",
+      "start_time": "09:00",
+      "end_time": "12:00",
+      "status": "cancelled"
+    },
+    "crew": {
+      "confirmation_status": "cancelled"
+    },
+    "available_slots": [],
+    "other_jobs": [],
+    "proposed_decision": {
+      "action": "reply",
+      "reply": "Our records show that appointment as cancelled. Would you like us to arrange a new time?"
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    }
+  }
+]

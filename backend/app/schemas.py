@@ -23,6 +23,9 @@ class ProposedDecision(BaseModel):
 
 class SchedulingCase(BaseModel):
     case_id: str = "CUSTOM"
+    use_case: Optional[str] = None      # base use case (A-001) for synthetic dataset variants
+    variant: Optional[int] = None
+    title: Optional[str] = None
     category: str = "custom"
     customer_message: str = Field(min_length=1, max_length=1000)
     appointment: Appointment = Field(default_factory=Appointment)
@@ -74,3 +77,25 @@ class DecisionResponse(BaseModel):
     final_reply: str
     note: str
     evidence: Evidence
+
+
+class BatchRequest(BaseModel):
+    mode: Mode = "mock"
+    use_case: Optional[str] = None                 # run every dataset of one use case ...
+    case_ids: Optional[list[str]] = None           # ... or an explicit list of dataset ids
+
+
+class BatchItem(BaseModel):
+    case_id: str
+    title: Optional[str] = None
+    customer_message: str
+    expected_acceptable: Optional[bool] = None
+    decision: DecisionResponse
+
+
+class BatchResponse(BaseModel):
+    mode: Mode
+    total: int
+    approved: int
+    blocked: int
+    items: list[BatchItem]

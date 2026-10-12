@@ -1,0 +1,1254 @@
+[
+  {
+    "case_id": "A-001.1",
+    "use_case": "A-001",
+    "title": "Same crew, earlier job completed",
+    "customer_message": "Is my installation still on for tomorrow?",
+    "payload": {
+      "customer_message": "Is my installation still on for tomorrow?",
+      "appointment": {
+        "date": "2026-10-13",
+        "start_time": "09:00",
+        "end_time": "12:00",
+        "status": "confirmed"
+      },
+      "crew": {
+        "confirmation_status": "confirmed"
+      },
+      "available_slots": [],
+      "other_jobs": [
+        {
+          "job_id": "J-100",
+          "status": "completed"
+        }
+      ]
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E1_CONFLICT_ACCURACY"
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1917,
+    "proposed": {
+      "action": "reply",
+      "reply": "Yes, your installation is still on for tomorrow from 09:00 to 12:00. The crew is confirmed."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "reply",
+      "reply": "Yes, your installation is still on for tomorrow from 09:00 to 12:00. The crew is confirmed."
+    },
+    "error": null
+  },
+  {
+    "case_id": "A-001.2",
+    "use_case": "A-001",
+    "title": "Completed + cancelled jobs",
+    "customer_message": "Just checking the fitters are still coming Thursday morning.",
+    "payload": {
+      "customer_message": "Just checking the fitters are still coming Thursday morning.",
+      "appointment": {
+        "date": "2026-10-15",
+        "start_time": "08:30",
+        "end_time": "11:30",
+        "status": "confirmed"
+      },
+      "crew": {
+        "confirmation_status": "confirmed"
+      },
+      "available_slots": [],
+      "other_jobs": [
+        {
+          "job_id": "J-201",
+          "status": "completed"
+        },
+        {
+          "job_id": "J-202",
+          "status": "cancelled"
+        }
+      ]
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E1_CONFLICT_ACCURACY"
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1128,
+    "proposed": {
+      "action": "reply",
+      "reply": "The fitters are confirmed to arrive on Thursday morning at 08:30."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "reply",
+      "reply": "The fitters are confirmed to arrive on Thursday morning at 08:30."
+    },
+    "error": null
+  },
+  {
+    "case_id": "A-001.3",
+    "use_case": "A-001",
+    "title": "Only history on record",
+    "customer_message": "Any problems with my appointment on the 20th?",
+    "payload": {
+      "customer_message": "Any problems with my appointment on the 20th?",
+      "appointment": {
+        "date": "2026-10-20",
+        "start_time": "13:00",
+        "end_time": "16:00",
+        "status": "confirmed"
+      },
+      "crew": {
+        "confirmation_status": "confirmed"
+      },
+      "available_slots": [],
+      "other_jobs": [
+        {
+          "job_id": "J-310",
+          "status": "completed"
+        },
+        {
+          "job_id": "J-311",
+          "status": "completed"
+        },
+        {
+          "job_id": "J-312",
+          "status": "completed"
+        }
+      ]
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E1_CONFLICT_ACCURACY"
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1060,
+    "proposed": {
+      "action": "reply",
+      "reply": "Your appointment on the 20th is confirmed. The crew is also confirmed for the job."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "reply",
+      "reply": "Your appointment on the 20th is confirmed. The crew is also confirmed for the job."
+    },
+    "error": null
+  },
+  {
+    "case_id": "A-002.1",
+    "use_case": "A-002",
+    "title": "Active job, reply confirms",
+    "customer_message": "Is my installation still happening tomorrow?",
+    "payload": {
+      "customer_message": "Is my installation still happening tomorrow?",
+      "appointment": {
+        "date": "2026-10-13",
+        "start_time": "09:00",
+        "end_time": "12:00",
+        "status": "confirmed"
+      },
+      "crew": {
+        "confirmation_status": "confirmed"
+      },
+      "available_slots": [],
+      "other_jobs": [
+        {
+          "job_id": "J-400",
+          "status": "scheduled"
+        }
+      ]
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1303,
+    "proposed": {
+      "action": "reply",
+      "reply": "Yes, your installation is still happening tomorrow from 09:00 to 12:00. The crew is confirmed for the job."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "reply",
+      "reply": "Yes, your installation is still happening tomorrow from 09:00 to 12:00. The crew is confirmed for the job."
+    },
+    "error": null
+  },
+  {
+    "case_id": "A-002.2",
+    "use_case": "A-002",
+    "title": "In-progress job elsewhere",
+    "customer_message": "Are you still fitting the units this afternoon?",
+    "payload": {
+      "customer_message": "Are you still fitting the units this afternoon?",
+      "appointment": {
+        "date": "2026-10-12",
+        "start_time": "14:00",
+        "end_time": "17:00",
+        "status": "confirmed"
+      },
+      "crew": {
+        "confirmation_status": "confirmed"
+      },
+      "available_slots": [],
+      "other_jobs": [
+        {
+          "job_id": "J-410",
+          "status": "in_progress"
+        }
+      ]
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1252,
+    "proposed": {
+      "action": "reply",
+      "reply": "Yes, the units are still being fitted this afternoon as per the confirmed appointment. The crew is confirmed for the job."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "reply",
+      "reply": "Yes, the units are still being fitted this afternoon as per the confirmed appointment. The crew is confirmed for the job."
+    },
+    "error": null
+  },
+  {
+    "case_id": "A-002.3",
+    "use_case": "A-002",
+    "title": "No other jobs",
+    "customer_message": "Can you confirm my slot on Friday?",
+    "payload": {
+      "customer_message": "Can you confirm my slot on Friday?",
+      "appointment": {
+        "date": "2026-10-16",
+        "start_time": "10:00",
+        "end_time": "13:00",
+        "status": "confirmed"
+      },
+      "crew": {
+        "confirmation_status": "confirmed"
+      },
+      "available_slots": [],
+      "other_jobs": []
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1138,
+    "proposed": {
+      "action": "reply",
+      "reply": "Your appointment on Friday, 2026-10-16 from 10:00 to 13:00 is confirmed."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "reply",
+      "reply": "Your appointment on Friday, 2026-10-16 from 10:00 to 13:00 is confirmed."
+    },
+    "error": null
+  },
+  {
+    "case_id": "B-001.1",
+    "use_case": "B-001",
+    "title": "Away, will message when back",
+    "customer_message": "I'm away from home. I'll let you know when I'm back.",
+    "payload": {
+      "customer_message": "I'm away from home. I'll let you know when I'm back.",
+      "appointment": {
+        "date": "2026-10-13",
+        "start_time": "09:00",
+        "end_time": "12:00",
+        "status": "none"
+      },
+      "crew": {
+        "confirmation_status": "unknown"
+      },
+      "available_slots": [],
+      "other_jobs": []
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E2_CUSTOMER_INTENT"
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1103,
+    "proposed": {
+      "action": "wait",
+      "reply": "We'll wait for your confirmation when you're back. Please let us know your preferred date and time."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "wait",
+      "reply": "We'll wait for your confirmation when you're back. Please let us know your preferred date and time."
+    },
+    "error": null
+  },
+  {
+    "case_id": "B-001.2",
+    "use_case": "B-001",
+    "title": "Out of town this week",
+    "customer_message": "I'm out of town this week, I will get back to you next Monday.",
+    "payload": {
+      "customer_message": "I'm out of town this week, I will get back to you next Monday.",
+      "appointment": {
+        "date": null,
+        "start_time": null,
+        "end_time": null,
+        "status": "none"
+      },
+      "crew": {
+        "confirmation_status": "unknown"
+      },
+      "available_slots": [
+        {
+          "date": "Wednesday",
+          "start_time": "10:00"
+        }
+      ],
+      "other_jobs": []
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E2_CUSTOMER_INTENT"
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1204,
+    "proposed": {
+      "action": "wait",
+      "reply": "Understood, I'll await your confirmation next Monday."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "wait",
+      "reply": "Understood, I'll await your confirmation next Monday."
+    },
+    "error": null
+  },
+  {
+    "case_id": "B-001.3",
+    "use_case": "B-001",
+    "title": "Holiday, will contact",
+    "customer_message": "We're on holiday for two weeks. I'll contact you when I'm back.",
+    "payload": {
+      "customer_message": "We're on holiday for two weeks. I'll contact you when I'm back.",
+      "appointment": {
+        "date": null,
+        "start_time": null,
+        "end_time": null,
+        "status": "none"
+      },
+      "crew": {
+        "confirmation_status": "unknown"
+      },
+      "available_slots": [
+        {
+          "date": "Monday",
+          "start_time": "09:00"
+        },
+        {
+          "date": "Tuesday",
+          "start_time": "14:00"
+        }
+      ],
+      "other_jobs": []
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E2_CUSTOMER_INTENT"
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1823,
+    "proposed": {
+      "action": "wait",
+      "reply": "Understood. Please contact us when you return, and we'll assist with scheduling."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "wait",
+      "reply": "Understood. Please contact us when you return, and we'll assist with scheduling."
+    },
+    "error": null
+  },
+  {
+    "case_id": "B-002.1",
+    "use_case": "B-002",
+    "title": "Acknowledge and wait",
+    "customer_message": "I'm away from home. I'll let you know when I'm back.",
+    "payload": {
+      "customer_message": "I'm away from home. I'll let you know when I'm back.",
+      "appointment": {
+        "date": "2026-10-13",
+        "start_time": "09:00",
+        "end_time": "12:00",
+        "status": "none"
+      },
+      "crew": {
+        "confirmation_status": "unknown"
+      },
+      "available_slots": [],
+      "other_jobs": []
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1243,
+    "proposed": {
+      "action": "wait",
+      "reply": "Please let us know when you're back so we can proceed with scheduling."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "wait",
+      "reply": "Please let us know when you're back so we can proceed with scheduling."
+    },
+    "error": null
+  },
+  {
+    "case_id": "B-002.2",
+    "use_case": "B-002",
+    "title": "Acknowledge, no follow-up",
+    "customer_message": "I'm travelling until the 25th and will let you know when I'm home.",
+    "payload": {
+      "customer_message": "I'm travelling until the 25th and will let you know when I'm home.",
+      "appointment": {
+        "date": null,
+        "start_time": null,
+        "end_time": null,
+        "status": "none"
+      },
+      "crew": {
+        "confirmation_status": "unknown"
+      },
+      "available_slots": [],
+      "other_jobs": []
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1255,
+    "proposed": {
+      "action": "wait",
+      "reply": "Understood. Please let us know when you're available, and we'll assist with scheduling."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "wait",
+      "reply": "Understood. Please let us know when you're available, and we'll assist with scheduling."
+    },
+    "error": null
+  },
+  {
+    "case_id": "B-002.3",
+    "use_case": "B-002",
+    "title": "Short acknowledgement",
+    "customer_message": "Out of town, I'll get back to you.",
+    "payload": {
+      "customer_message": "Out of town, I'll get back to you.",
+      "appointment": {
+        "date": null,
+        "start_time": null,
+        "end_time": null,
+        "status": "none"
+      },
+      "crew": {
+        "confirmation_status": "unknown"
+      },
+      "available_slots": [
+        {
+          "date": "Tuesday",
+          "start_time": "14:00"
+        }
+      ],
+      "other_jobs": []
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1375,
+    "proposed": {
+      "action": "wait",
+      "reply": "Understood. Please let me know when you're available to schedule."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "wait",
+      "reply": "Understood. Please let me know when you're available to schedule."
+    },
+    "error": null
+  },
+  {
+    "case_id": "C-001.1",
+    "use_case": "C-001",
+    "title": "Saturday not offered",
+    "customer_message": "Can you come this Saturday?",
+    "payload": {
+      "customer_message": "Can you come this Saturday?",
+      "appointment": {
+        "date": "2026-10-13",
+        "start_time": "09:00",
+        "end_time": "12:00",
+        "status": "none"
+      },
+      "crew": {
+        "confirmation_status": "unknown"
+      },
+      "available_slots": [
+        {
+          "date": "Monday",
+          "start_time": "10:00"
+        },
+        {
+          "date": "Tuesday",
+          "start_time": "14:00"
+        }
+      ],
+      "other_jobs": []
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E3_AVAILABILITY_INTEGRITY"
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1156,
+    "proposed": {
+      "action": "reply",
+      "reply": "We have availability on Monday at 10:00 or Tuesday at 14:00. Would either of these work for you?"
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "reply",
+      "reply": "We have availability on Monday at 10:00 or Tuesday at 14:00. Would either of these work for you?"
+    },
+    "error": null
+  },
+  {
+    "case_id": "C-001.2",
+    "use_case": "C-001",
+    "title": "Sunday not offered",
+    "customer_message": "Is Sunday possible? It's the only day I'm free.",
+    "payload": {
+      "customer_message": "Is Sunday possible? It's the only day I'm free.",
+      "appointment": {
+        "date": null,
+        "start_time": null,
+        "end_time": null,
+        "status": "none"
+      },
+      "crew": {
+        "confirmation_status": "unknown"
+      },
+      "available_slots": [
+        {
+          "date": "Wednesday",
+          "start_time": "09:00"
+        },
+        {
+          "date": "Thursday",
+          "start_time": "15:00"
+        }
+      ],
+      "other_jobs": []
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E3_AVAILABILITY_INTEGRITY"
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 935,
+    "proposed": {
+      "action": "reply",
+      "reply": "Sunday is not available. We have slots on Wednesday at 09:00 and Thursday at 15:00."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "reply",
+      "reply": "Sunday is not available. We have slots on Wednesday at 09:00 and Thursday at 15:00."
+    },
+    "error": null
+  },
+  {
+    "case_id": "C-001.3",
+    "use_case": "C-001",
+    "title": "Friday not offered, ISO dates",
+    "customer_message": "Could someone come Friday?",
+    "payload": {
+      "customer_message": "Could someone come Friday?",
+      "appointment": {
+        "date": null,
+        "start_time": null,
+        "end_time": null,
+        "status": "none"
+      },
+      "crew": {
+        "confirmation_status": "unknown"
+      },
+      "available_slots": [
+        {
+          "date": "2026-10-19",
+          "start_time": "10:00"
+        },
+        {
+          "date": "2026-10-21",
+          "start_time": "11:00"
+        }
+      ],
+      "other_jobs": []
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E3_AVAILABILITY_INTEGRITY"
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1084,
+    "proposed": {
+      "action": "reply",
+      "reply": "Friday is unavailable. We have slots on October 19 at 10:00 and October 21 at 11:00."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "reply",
+      "reply": "Friday is unavailable. We have slots on October 19 at 10:00 and October 21 at 11:00."
+    },
+    "error": null
+  },
+  {
+    "case_id": "C-002.1",
+    "use_case": "C-002",
+    "title": "Monday 10:00 exists",
+    "customer_message": "Can you come Monday at 10:00?",
+    "payload": {
+      "customer_message": "Can you come Monday at 10:00?",
+      "appointment": {
+        "date": "2026-10-13",
+        "start_time": "09:00",
+        "end_time": "12:00",
+        "status": "none"
+      },
+      "crew": {
+        "confirmation_status": "unknown"
+      },
+      "available_slots": [
+        {
+          "date": "Monday",
+          "start_time": "10:00"
+        },
+        {
+          "date": "Tuesday",
+          "start_time": "14:00"
+        }
+      ],
+      "other_jobs": []
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1097,
+    "proposed": {
+      "action": "reply",
+      "reply": "Monday at 10:00 is available. Please confirm to book."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "reply",
+      "reply": "Monday at 10:00 is available. Please confirm to book."
+    },
+    "error": null
+  },
+  {
+    "case_id": "C-002.2",
+    "use_case": "C-002",
+    "title": "Decline Saturday, offer real slots",
+    "customer_message": "Any chance of a Saturday visit?",
+    "payload": {
+      "customer_message": "Any chance of a Saturday visit?",
+      "appointment": {
+        "date": null,
+        "start_time": null,
+        "end_time": null,
+        "status": "none"
+      },
+      "crew": {
+        "confirmation_status": "unknown"
+      },
+      "available_slots": [
+        {
+          "date": "Monday",
+          "start_time": "10:00"
+        },
+        {
+          "date": "Tuesday",
+          "start_time": "14:00"
+        }
+      ],
+      "other_jobs": []
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1085,
+    "proposed": {
+      "action": "reply",
+      "reply": "Saturday is not available. We have slots on Monday at 10:00 and Tuesday at 14:00."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "reply",
+      "reply": "Saturday is not available. We have slots on Monday at 10:00 and Tuesday at 14:00."
+    },
+    "error": null
+  },
+  {
+    "case_id": "C-002.3",
+    "use_case": "C-002",
+    "title": "ISO date resolves to weekday",
+    "customer_message": "Is Monday the 19th free?",
+    "payload": {
+      "customer_message": "Is Monday the 19th free?",
+      "appointment": {
+        "date": null,
+        "start_time": null,
+        "end_time": null,
+        "status": "none"
+      },
+      "crew": {
+        "confirmation_status": "unknown"
+      },
+      "available_slots": [
+        {
+          "date": "2026-10-19",
+          "start_time": "10:00"
+        }
+      ],
+      "other_jobs": []
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1313,
+    "proposed": {
+      "action": "reply",
+      "reply": "Monday the 19th at 10:00 is available. Please confirm if you would like to book this slot."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "reply",
+      "reply": "Monday the 19th at 10:00 is available. Please confirm if you would like to book this slot."
+    },
+    "error": null
+  },
+  {
+    "case_id": "D-001.1",
+    "use_case": "D-001",
+    "title": "Tentative, crew unknown",
+    "customer_message": "Is the crew coming tomorrow?",
+    "payload": {
+      "customer_message": "Is the crew coming tomorrow?",
+      "appointment": {
+        "date": "2026-10-13",
+        "start_time": "09:00",
+        "end_time": "12:00",
+        "status": "tentative"
+      },
+      "crew": {
+        "confirmation_status": "unknown"
+      },
+      "available_slots": [],
+      "other_jobs": []
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E4_CONFIRMATION_INTEGRITY"
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 944,
+    "proposed": {
+      "action": "reply",
+      "reply": "The crew's status for tomorrow is currently unknown. We'll update you as soon as we have more information."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "reply",
+      "reply": "The crew's status for tomorrow is currently unknown. We'll update you as soon as we have more information."
+    },
+    "error": null
+  },
+  {
+    "case_id": "D-001.2",
+    "use_case": "D-001",
+    "title": "Pending, crew unconfirmed",
+    "customer_message": "Will the team definitely turn up on the 14th?",
+    "payload": {
+      "customer_message": "Will the team definitely turn up on the 14th?",
+      "appointment": {
+        "date": "2026-10-14",
+        "start_time": "08:00",
+        "end_time": "11:00",
+        "status": "pending"
+      },
+      "crew": {
+        "confirmation_status": "unconfirmed"
+      },
+      "available_slots": [],
+      "other_jobs": []
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E4_CONFIRMATION_INTEGRITY"
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1200,
+    "proposed": {
+      "action": "reply",
+      "reply": "The team's attendance on the 14th is currently unconfirmed."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "reply",
+      "reply": "The team's attendance on the 14th is currently unconfirmed."
+    },
+    "error": null
+  },
+  {
+    "case_id": "D-001.3",
+    "use_case": "D-001",
+    "title": "Confirmed appt, crew not confirmed",
+    "customer_message": "Just want to be sure someone is coming tomorrow.",
+    "payload": {
+      "customer_message": "Just want to be sure someone is coming tomorrow.",
+      "appointment": {
+        "date": "2026-10-13",
+        "start_time": "09:00",
+        "end_time": "12:00",
+        "status": "confirmed"
+      },
+      "crew": {
+        "confirmation_status": "pending"
+      },
+      "available_slots": [],
+      "other_jobs": []
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E4_CONFIRMATION_INTEGRITY"
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 977,
+    "proposed": {
+      "action": "reply",
+      "reply": "Your appointment is confirmed for 2026-10-13 from 09:00 to 12:00. The crew's confirmation status is pending."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "reply",
+      "reply": "Your appointment is confirmed for 2026-10-13 from 09:00 to 12:00. The crew's confirmation status is pending."
+    },
+    "error": null
+  },
+  {
+    "case_id": "D-002.1",
+    "use_case": "D-002",
+    "title": "States tentative",
+    "customer_message": "Is the crew coming tomorrow?",
+    "payload": {
+      "customer_message": "Is the crew coming tomorrow?",
+      "appointment": {
+        "date": "2026-10-13",
+        "start_time": "09:00",
+        "end_time": "12:00",
+        "status": "tentative"
+      },
+      "crew": {
+        "confirmation_status": "unknown"
+      },
+      "available_slots": [],
+      "other_jobs": []
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1105,
+    "proposed": {
+      "action": "reply",
+      "reply": "The crew's status for tomorrow is currently unknown. We'll update you as soon as we have more information."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "reply",
+      "reply": "The crew's status for tomorrow is currently unknown. We'll update you as soon as we have more information."
+    },
+    "error": null
+  },
+  {
+    "case_id": "D-002.2",
+    "use_case": "D-002",
+    "title": "Promises an update",
+    "customer_message": "Will somebody be there on the 14th?",
+    "payload": {
+      "customer_message": "Will somebody be there on the 14th?",
+      "appointment": {
+        "date": "2026-10-14",
+        "start_time": "08:00",
+        "end_time": "11:00",
+        "status": "pending"
+      },
+      "crew": {
+        "confirmation_status": "unconfirmed"
+      },
+      "available_slots": [],
+      "other_jobs": []
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1326,
+    "proposed": {
+      "action": "reply",
+      "reply": "There is a pending appointment on the 14th, but the crew is unconfirmed."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "reply",
+      "reply": "There is a pending appointment on the 14th, but the crew is unconfirmed."
+    },
+    "error": null
+  },
+  {
+    "case_id": "D-002.3",
+    "use_case": "D-002",
+    "title": "Confirmed crew may be promised",
+    "customer_message": "Is the crew still coming tomorrow?",
+    "payload": {
+      "customer_message": "Is the crew still coming tomorrow?",
+      "appointment": {
+        "date": "2026-10-13",
+        "start_time": "09:00",
+        "end_time": "12:00",
+        "status": "confirmed"
+      },
+      "crew": {
+        "confirmation_status": "confirmed"
+      },
+      "available_slots": [],
+      "other_jobs": []
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1295,
+    "proposed": {
+      "action": "reply",
+      "reply": "Yes, the crew is confirmed to arrive tomorrow at 09:00 for a 3-hour service."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "reply",
+      "reply": "Yes, the crew is confirmed to arrive tomorrow at 09:00 for a 3-hour service."
+    },
+    "error": null
+  },
+  {
+    "case_id": "E-001.1",
+    "use_case": "E-001",
+    "title": "Status and crew missing",
+    "customer_message": "Is my appointment confirmed?",
+    "payload": {
+      "customer_message": "Is my appointment confirmed?",
+      "appointment": {
+        "date": "2026-10-13",
+        "start_time": "09:00",
+        "end_time": "12:00",
+        "status": null
+      },
+      "crew": {
+        "confirmation_status": null
+      },
+      "available_slots": [],
+      "other_jobs": []
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E5_DATA_UNCERTAINTY"
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 990,
+    "proposed": {
+      "action": "reply",
+      "reply": "Your appointment is not confirmed yet. We will update you once it is confirmed."
+    },
+    "approved": false,
+    "rules": [
+      "E5_DATA_UNCERTAINTY"
+    ],
+    "final": {
+      "action": "escalate",
+      "reply": "We need to verify the appointment and crew status before confirming."
+    },
+    "error": null
+  },
+  {
+    "case_id": "E-001.2",
+    "use_case": "E-001",
+    "title": "Invalid status value",
+    "customer_message": "Can you confirm my booking?",
+    "payload": {
+      "customer_message": "Can you confirm my booking?",
+      "appointment": {
+        "date": "2026-10-13",
+        "start_time": "09:00",
+        "end_time": "12:00",
+        "status": "confrimed"
+      },
+      "crew": {
+        "confirmation_status": "confirmed"
+      },
+      "available_slots": [],
+      "other_jobs": []
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E5_DATA_UNCERTAINTY"
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1166,
+    "proposed": {
+      "action": "reply",
+      "reply": "Your booking on 2026-10-13 from 09:00 to 12:00 is confirmed and the crew is confirmed."
+    },
+    "approved": false,
+    "rules": [
+      "E5_DATA_UNCERTAINTY"
+    ],
+    "final": {
+      "action": "escalate",
+      "reply": "We need to verify the appointment and crew status before confirming."
+    },
+    "error": null
+  },
+  {
+    "case_id": "E-001.3",
+    "use_case": "E-001",
+    "title": "Crew status missing",
+    "customer_message": "Is the crew booked for Friday?",
+    "payload": {
+      "customer_message": "Is the crew booked for Friday?",
+      "appointment": {
+        "date": "2026-10-16",
+        "start_time": "10:00",
+        "end_time": "13:00",
+        "status": "confirmed"
+      },
+      "crew": {
+        "confirmation_status": null
+      },
+      "available_slots": [],
+      "other_jobs": []
+    },
+    "expected": {
+      "acceptable": false,
+      "rule": "E5_DATA_UNCERTAINTY"
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1066,
+    "proposed": {
+      "action": "reply",
+      "reply": "The crew is booked for Friday, October 16, 2026, from 10:00 to 13:00. However, the confirmation status is currently unknown."
+    },
+    "approved": false,
+    "rules": [
+      "E5_DATA_UNCERTAINTY"
+    ],
+    "final": {
+      "action": "escalate",
+      "reply": "We need to verify the appointment and crew status before confirming."
+    },
+    "error": null
+  },
+  {
+    "case_id": "E-002.1",
+    "use_case": "E-002",
+    "title": "Fully confirmed",
+    "customer_message": "Can you verify my appointment?",
+    "payload": {
+      "customer_message": "Can you verify my appointment?",
+      "appointment": {
+        "date": "2026-10-13",
+        "start_time": "09:00",
+        "end_time": "12:00",
+        "status": "confirmed"
+      },
+      "crew": {
+        "confirmation_status": "confirmed"
+      },
+      "available_slots": [],
+      "other_jobs": []
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1205,
+    "proposed": {
+      "action": "reply",
+      "reply": "Your appointment on 2026-10-13 from 09:00 to 12:00 is confirmed. The crew is also confirmed."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "reply",
+      "reply": "Your appointment on 2026-10-13 from 09:00 to 12:00 is confirmed. The crew is also confirmed."
+    },
+    "error": null
+  },
+  {
+    "case_id": "E-002.2",
+    "use_case": "E-002",
+    "title": "Completed visit",
+    "customer_message": "Did my installation already happen?",
+    "payload": {
+      "customer_message": "Did my installation already happen?",
+      "appointment": {
+        "date": "2026-10-09",
+        "start_time": "09:00",
+        "end_time": "12:00",
+        "status": "completed"
+      },
+      "crew": {
+        "confirmation_status": "confirmed"
+      },
+      "available_slots": [],
+      "other_jobs": []
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1446,
+    "proposed": {
+      "action": "reply",
+      "reply": "Your installation on 2026-10-09 from 09:00 to 12:00 is marked as completed. If you have any concerns, please let us know."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "reply",
+      "reply": "Your installation on 2026-10-09 from 09:00 to 12:00 is marked as completed. If you have any concerns, please let us know."
+    },
+    "error": null
+  },
+  {
+    "case_id": "E-002.3",
+    "use_case": "E-002",
+    "title": "Cancelled appointment",
+    "customer_message": "Is my Tuesday appointment still on?",
+    "payload": {
+      "customer_message": "Is my Tuesday appointment still on?",
+      "appointment": {
+        "date": "2026-10-13",
+        "start_time": "09:00",
+        "end_time": "12:00",
+        "status": "cancelled"
+      },
+      "crew": {
+        "confirmation_status": "cancelled"
+      },
+      "available_slots": [],
+      "other_jobs": []
+    },
+    "expected": {
+      "acceptable": true,
+      "rule": null
+    },
+    "source": "bedrock",
+    "model_id": "amazon.nova-pro-v1:0",
+    "latency_ms": 1445,
+    "proposed": {
+      "action": "reply",
+      "reply": "Your Tuesday appointment on 2026-10-13 from 09:00 to 12:00 has been cancelled."
+    },
+    "approved": true,
+    "rules": [],
+    "final": {
+      "action": "reply",
+      "reply": "Your Tuesday appointment on 2026-10-13 from 09:00 to 12:00 has been cancelled."
+    },
+    "error": null
+  }
+]

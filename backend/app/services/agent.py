@@ -22,7 +22,7 @@ FALLBACK = ProposedDecision(action="escalate", reply="We need to verify the sche
 
 def agent_facts(case: SchedulingCase) -> dict[str, Any]:
     """Exactly the facts shown to the agent (and recorded as evidence): no proposal, no expected outcome."""
-    return case.model_dump(exclude={"proposed_decision", "expected", "category"})
+    return case.model_dump(exclude={"proposed_decision", "expected", "category", "use_case", "variant", "title", "case_id"})
 
 
 def extract_decision(raw: str) -> ProposedDecision:

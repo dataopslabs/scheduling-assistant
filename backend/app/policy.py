@@ -21,6 +21,8 @@ UNCERTAIN = re.compile(r"\b(not|tentative|unknown|unconfirmed|pending|yet|once|u
 CREW_PROMISE = re.compile(
     r"\b(crew|team|technicians?|installers?)\b.*\b(will be there|is coming|are coming|will arrive|will come|is on (the|their) way|is confirmed)\b"
     r"|\bwe(?:'ll| will) be there\b|\byou can count on us\b|\bsee you\b")
+# Negation for conflict claims is narrower: "Unfortunately there is a conflict" is still a claim.
+NEGATE_CLAIM = re.compile(r"\b(no|not|never|without|isn't|aren't|doesn't|don't)\b|n't\b")
 CONFLICT_CLAIM = re.compile(r"\b(conflicts?|double[- ]?book\w*|clash\w*|delayed?)\b")
 DEFER = re.compile(r"(i'?ll|i will) (let you know|get back|contact|reach out|call|message)|when i'?m back|when i am back|i'?m away|out of town")
 PUSH = re.compile(r"\?|\bbook you\b|\bshall we\b|\bhow about\b|\bwould you like\b|\bcan we book\b")
@@ -60,7 +62,7 @@ def _f(rule: str, reason: str, alt: str) -> PolicyFinding:
 
 def e1_conflict(c: Ctx) -> Optional[PolicyFinding]:
     """A conflict claim needs an ACTIVE other job."""
-    claims = [s for s in _sentences(c.reply) if CONFLICT_CLAIM.search(s) and not NEGATE.search(s)]
+    claims = [s for s in _sentences(c.reply) if CONFLICT_CLAIM.search(s) and not NEGATE_CLAIM.search(s)]
     if claims and not any(str(j.get("status", "")).casefold() in ACTIVE_JOB for j in c.case.other_jobs):
         return _f("E1_CONFLICT_ACCURACY", "No active job supports the claimed conflict (completed/cancelled jobs cannot conflict).",
                   "Your appointment is currently listed as confirmed. We will verify any active conflict before escalating.")
