@@ -2,16 +2,18 @@ import { useEffect, useState } from "react";
 const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 type Dec = { action: string; reply: string };
 type Case = any;
-type Report = { total: number; passed: number; pass_rate: number; unsafe_acceptance_rate: number; valid_decision_rejection_rate: number; results: { case_id: string; category: string; passed: boolean; rules: string[] }[] };
+type _Report = { total: number; passed: number; pass_rate: number; unsafe_acceptance_rate: number; valid_decision_rejection_rate: number; results: { case_id: string; category: string; passed: boolean; rules: string[] }[] };
 const APPT = ["confirmed", "tentative", "pending", "none"];
 const CREW = ["confirmed", "unknown", "pending", "unconfirmed"];
+const RULES = [["E1", "Conflict accuracy"], ["E2", "Customer intent"], ["E3", "Availability"], ["E4", "Crew confirmation"], ["E5", "Data completeness"]];
 const pct = (n: number) => (n * 100).toFixed(0) + "%";
 const LABEL: Record<string, string> = { conflict_accuracy: "Conflict", customer_intent: "Customer intent", availability_integrity: "Availability", confirmation_integrity: "Crew confirmation", data_uncertainty_extension: "Missing data" };
 
 export default function App() {
   const [cases, setCases] = useState<Case[]>([]);
   const [sel, setSel] = useState("C-001");
-  const [report, setReport] = useState<Report | null>(null);
+  const [input, setInput] = useState<any>(null);
+  const [log, setLog] = useState<any[]>([]);
   const [out, setOut] = useState<any>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -30,7 +32,6 @@ export default function App() {
   };
   useEffect(() => {
     call("/api/cases").then(setCases).catch(() => setErr("Backend unreachable"));
-    call("/api/evaluate").then(setReport).catch(() => {});
   }, []);
 
   const current = cases.find((c) => c.case_id === sel);
@@ -47,7 +48,12 @@ export default function App() {
       let c: any;
       if (custom) { c = customCase(); setCustomMsg(c.customer_message); }
       else { c = { ...current }; delete c.expected; if (kind === "live") delete c.proposed_decision; }
-      setOut(await call("/api/decide", c));
+      const t0 = performance.now();
+      const res = await call("/api/decide", c);
+      const { proposed_decision, ...facts } = c;
+      setInput({ facts, kind });
+      setOut(res);
+      setLog((l) => [{ n: l.length + 1, id: c.case_id, mode: res.mode, action: res.proposed_decision.action, ok: res.acceptable, rules: res.findings.map((f: any) => f.rule_id), final: res.final_action, ms: Math.round(performance.now() - t0), t: new Date().toLocaleTimeString() }, ...l].slice(0, 12));
     } catch (e: any) { setErr(String(e.message || e)); } finally { setBusy(false); }
   }
   const customerText = custom ? customMsg || msg : current?.customer_message;
@@ -61,7 +67,7 @@ export default function App() {
     </div></div>
     <main>
       <div className="metrics">
-        {[["Test cases", report?.total ?? "—"], ["Policy pass rate", report ? pct(report.pass_rate) : "—"], ["Unsafe replies let through", report ? pct(report.unsafe_acceptance_rate) : "—"], ["Valid replies wrongly blocked", report ? pct(report.valid_decision_rejection_rate) : "—"]].map(([a, b]) => <div className="m" key={String(a)}><small>{a}</small><b>{b}</b></div>)}
+        {[["Agent runs", log.length], ["Approved", log.filter((r) => r.ok).length], ["Blocked & replaced", log.filter((r) => !r.ok).length], ["Escalated to a human", log.filter((r) => r.final === "escalate").length]].map(([a, b]) => <div className="m" key={String(a)}><small>{a}</small><b>{b}</b></div>)}
       </div>
       {err && <div className="err">{err}</div>}
       <div className="grid">
@@ -96,10 +102,32 @@ export default function App() {
               {!out.acceptable && <div className="alt">The unsafe proposal was replaced by the policy’s safer alternative.</div>}
             </>}
           </div>
-          {report && <><h3 style={{ marginTop: 22 }}>3 · EVALUATION SUITE</h3>
-            {report.results.map((r) => <div className="res" key={r.case_id}><span><b>{r.case_id}</b> · {LABEL[r.category] || r.category}</span><span>{r.rules.join(", ") || "valid"} <span className={r.passed ? "pass" : "fail"}>{r.passed ? "✓ PASS" : "✗ FAIL"}</span></span></div>)}</>}
         </div>
       </div>
+      {out && input && <div className="card" style={{ marginTop: 18 }}>
+        <h3>3 · DATA AND DECISION BEHIND THIS RUN</h3>
+        <div className="three">
+          <div><h4>Data the agent saw</h4>
+            <table className="kv"><tbody>
+              <tr><td>Customer message</td><td>{input.facts.customer_message}</td></tr>
+              <tr><td>Appointment</td><td>{input.facts.appointment?.date} {input.facts.appointment?.start_time}–{input.facts.appointment?.end_time} · <b>{input.facts.appointment?.status ?? "missing"}</b></td></tr>
+              <tr><td>Crew confirmation</td><td><b>{input.facts.crew?.confirmation_status ?? "missing"}</b></td></tr>
+              <tr><td>Available slots</td><td>{input.facts.available_slots?.length ? input.facts.available_slots.map((x: any) => `${x.date} ${x.start_time}`).join(", ") : "none supplied"}</td></tr>
+              <tr><td>Other jobs</td><td>{input.facts.other_jobs?.length ? input.facts.other_jobs.map((j: any) => `${j.job_id || "job"}: ${j.status}`).join(", ") : "none"}</td></tr>
+            </tbody></table></div>
+          <div><h4>Policy checks</h4>
+            {RULES.map(([id, name]) => { const hit = out.findings.find((f: any) => f.rule_id.startsWith(id)); const skipped = !hit && out.findings.some((f: any) => f.rule_id.startsWith("E5"));
+              return <div className="rule" key={id}><span>{id} · {name}</span><span className={hit ? "fail" : skipped ? "skip" : "pass"}>{hit ? "✗ BLOCKED" : skipped ? "– skipped" : "✓ passed"}</span>{hit && <div className="alt">{hit.reason}</div>}</div>; })}
+          </div>
+          <div><h4>Decision record</h4>
+            <pre>{JSON.stringify({ source: out.mode, proposed: out.proposed_decision, verdict: out.acceptable ? "approved" : "blocked", final: { action: out.final_action, reply: out.final_reply } }, null, 2)}</pre></div>
+        </div>
+      </div>}
+      {log.length > 0 && <div className="card" style={{ marginTop: 18 }}>
+        <h3>4 · RUN LOG (THIS SESSION)</h3>
+        <table className="log"><thead><tr><th>#</th><th>Time</th><th>Scenario</th><th>Source</th><th>Proposed</th><th>Verdict</th><th>Rules</th><th>Final</th><th>ms</th></tr></thead>
+          <tbody>{log.map((r) => <tr key={r.n}><td>{r.n}</td><td>{r.t}</td><td>{r.id}</td><td>{r.mode}</td><td>{r.action}</td><td className={r.ok ? "pass" : "fail"}>{r.ok ? "approved" : "blocked"}</td><td>{r.rules.join(", ") || "—"}</td><td>{r.final}</td><td>{r.ms}</td></tr>)}</tbody></table>
+      </div>}
     </main>
     <footer>Model output is a proposal, never authorization · <a href="/docs/index.html">Case study</a></footer>
   </>);
