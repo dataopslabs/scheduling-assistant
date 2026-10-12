@@ -15,8 +15,8 @@ Parameters:
 Globals:
   Function:
     Runtime: python3.12
-    Timeout: 30
-    MemorySize: 256
+    Timeout: 60
+    MemorySize: 512
 
 Resources:
   AgentFunction:
@@ -30,7 +30,7 @@ Resources:
       Policies:
         - Statement:
             - Effect: Allow
-              Action: [bedrock:InvokeModel]
+              Action: [bedrock:InvokeModel, bedrock:InvokeModelWithResponseStream]
               Resource:
                 - arn:aws:bedrock:*::foundation-model/*
                 - !Sub arn:aws:bedrock:*:${AWS::AccountId}:inference-profile/*

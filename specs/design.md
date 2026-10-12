@@ -9,7 +9,7 @@ API Gateway HTTP API (CORS = Amplify origin, throttled)
    ▼
 Lambda  handler.py ─► agent.run()
                          ├─ prompts/{naive,improved}.md  (system instruction)
-                         ├─ Bedrock Converse API (temp 0, JSON-only output)   ← unless simulated_decision
+                         ├─ Strands Agent (BedrockModel, temp 0, JSON-only output)   ← unless simulated_decision
                          └─ safeguard.apply_guard()  (deterministic rules C → D → A → B)
    ◄─ {proposed, guard{acceptable,rule,reason}, final}
 ```
@@ -40,7 +40,7 @@ Structured field is the primary guarantee (exact match); text scanning is defenc
 Both. Instruction lowers violation rate and handles judgement (A, B tone). Code gives the guarantee for invariants (C, D) and logs violations. The model is asked for a machine-checkable `committed_slot_start` for that reason.
 
 ## Key decisions
-- **Converse API** (model-agnostic) with an inference-profile ID parameter, temperature 0.
+- **Strands Agents SDK** (`strands-agents`, packaged via `backend/requirements.txt`; `sam build --use-container`) with an inference-profile ID parameter, temperature 0.
 - **HTTP API over Function URL**: native throttling and CORS config. No auth (demo); noted as a risk.
 - **Amplify manual deploy** from the script (no GitHub OAuth needed); `amplify.yml` supports repo-connected CI/CD as well.
 - **Timezone-naive** datetimes for the demo; production should use tz-aware values.

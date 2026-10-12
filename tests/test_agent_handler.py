@@ -7,13 +7,13 @@ from handler import lambda_handler
 
 
 class FakeBedrock:
-    """Stands in for boto3 bedrock-runtime; records the request."""
+    """Stands in for a strands.Agent: callable, str(result) is the model text."""
     def __init__(self, text):
-        self.text, self.calls = text, []
+        self.text, self.prompts = text, []
 
-    def converse(self, **kw):
-        self.calls.append(kw)
-        return {"output": {"message": {"content": [{"text": self.text}]}}}
+    def __call__(self, prompt):
+        self.prompts.append(prompt)
+        return self.text
 
 
 def event(body, method="POST", path="/decide"):
@@ -25,7 +25,7 @@ class AgentTests(unittest.TestCase):
         fake = FakeBedrock('Sure! {"action":"reply","message":"Yes, we can come this Saturday.","committed_slot_start":null}')
         out = agent.run({"facts": CASES["C"]["facts"], "prompt": "naive"}, fake)
         print("\n[Agent/C naive] proposed:", out["proposed"]["message"], "\n   final:", out["final"]["message"])
-        self.assertEqual(out["source"], "bedrock")
+        self.assertEqual(out["source"], "strands-bedrock")
         self.assertFalse(out["guard"]["acceptable"])
         self.assertIn("Monday", out["final"]["message"])
 
@@ -36,11 +36,17 @@ class AgentTests(unittest.TestCase):
         self.assertTrue(out["guard"]["acceptable"])
         self.assertEqual(out["final"]["message"], msg)
 
-    def test_prompt_selection_and_system_prompt_sent(self):
+    def test_prompt_files_and_agent_factory(self):
+        self.assertIn("ONLY the scheduling facts", agent.load_prompt("improved"))
+        self.assertIn("Be proactive", agent.load_prompt("naive"))
         fake = FakeBedrock('{"action":"wait","message":"ok"}')
-        agent.run({"facts": CASES["B"]["facts"], "prompt": "improved"}, fake)
-        self.assertIn("ONLY the scheduling facts", fake.calls[0]["system"][0]["text"])
-        self.assertEqual(fake.calls[0]["inferenceConfig"]["temperature"], 0)
+        agent.run({"facts": CASES["B"]["facts"]}, fake)
+        self.assertIn("Respond with JSON only", fake.prompts[0])
+
+    def test_make_agent_builds_strands_agent_on_bedrock_model(self):
+        a = agent.make_agent("sys", "some-model-id")
+        self.assertEqual(a.model.config["model_id"], "some-model-id")
+        self.assertEqual(a.system_prompt, "sys")
 
     def test_unparseable_model_output_escalates(self):
         out = agent.run({"facts": CASES["C"]["facts"]}, FakeBedrock("I cannot help"))
@@ -48,7 +54,7 @@ class AgentTests(unittest.TestCase):
         self.assertEqual(out["guard"]["rule"], "model_error")
 
     def test_simulated_decision_skips_bedrock(self):
-        out = agent.run({"facts": CASES["D"]["facts"], "simulated_decision": CASES["D"]["bad"]}, client=None)
+        out = agent.run({"facts": CASES["D"]["facts"], "simulated_decision": CASES["D"]["bad"]})
         self.assertEqual(out["source"], "simulated")
         self.assertEqual(out["guard"]["rule"], "status")
 

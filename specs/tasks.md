@@ -13,7 +13,7 @@ Status legend: ✅ done and verified · ⚠️ done, not verifiable in this sand
 - ✅ T6 Unit tests: each original decision rejected, alternative passes, valid decision accepted, edge cases (29 tests in total)
 
 ## Phase 3 — Agent and API (FR-1, 2, 7, 8, 9)
-- ✅ T7 `agent.py` Bedrock Converse + JSON parsing + failure-to-escalate (tested with a fake client)
+- ✅ T7 `agent.py` Strands Agent on BedrockModel + JSON parsing + failure-to-escalate (tested with a fake client)
 - ✅ T8 `handler.py` HTTP adapter + tests
 - ⚠️ T9 Live Bedrock call (needs AWS credentials and model access)
 

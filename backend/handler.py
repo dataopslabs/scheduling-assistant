@@ -8,7 +8,7 @@ def _resp(status: int, body: dict) -> dict:
     return {"statusCode": status, "headers": {"content-type": "application/json"}, "body": json.dumps(body)}
 
 
-def lambda_handler(event, context=None, client=None):
+def lambda_handler(event, context=None, agent=None):
     method = event.get("requestContext", {}).get("http", {}).get("method", "POST")
     path = event.get("rawPath", "/decide")
     if method == "GET" and path.endswith("/health"):
@@ -19,6 +19,6 @@ def lambda_handler(event, context=None, client=None):
         payload = json.loads(event.get("body") or "{}")
         if "facts" not in payload:
             return _resp(400, {"error": "missing 'facts'"})
-        return _resp(200, run(payload, client))
+        return _resp(200, run(payload, agent))
     except (ValueError, KeyError, TypeError) as exc:  # malformed input
         return _resp(400, {"error": f"{type(exc).__name__}: {exc}"})

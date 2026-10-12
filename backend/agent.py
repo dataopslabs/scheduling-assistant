@@ -1,4 +1,4 @@
-"""Scheduling agent: Bedrock (Converse API) proposes a decision, the safeguard validates it."""
+"""Scheduling agent: a Strands Agent (Amazon Bedrock model) proposes a decision, the safeguard validates it."""
 from __future__ import annotations
 
 import json
@@ -64,31 +64,31 @@ def extract_json(text: str) -> dict[str, Any]:
     return json.loads(m.group(0))
 
 
-# ---- Bedrock -----------------------------------------------------------------------------
-def call_bedrock(system: str, facts_payload: dict[str, Any], client: Any = None,
-                 model_id: str = MODEL_ID) -> ProposedDecision:
-    if client is None:
-        import boto3  # available in the Lambda runtime
-        client = boto3.client("bedrock-runtime")
+# ---- Strands agent on Bedrock ------------------------------------------------------------
+def make_agent(system: str, model_id: str = MODEL_ID) -> Any:
+    from strands import Agent
+    from strands.models import BedrockModel
+    model = BedrockModel(model_id=model_id, temperature=0.0, max_tokens=400,
+                         region_name=os.environ.get("AWS_REGION"))
+    return Agent(model=model, system_prompt=system, callback_handler=None)  # no stdout streaming
+
+
+def call_agent(system: str, facts_payload: dict[str, Any], agent: Any = None,
+               model_id: str = MODEL_ID) -> ProposedDecision:
+    agent = agent or make_agent(system, model_id)
     user = f"Scheduling facts:\n{json.dumps(facts_payload, indent=2)}\n\n{OUTPUT_FORMAT}"
-    resp = client.converse(
-        modelId=model_id,
-        system=[{"text": system}],
-        messages=[{"role": "user", "content": [{"text": user}]}],
-        inferenceConfig={"maxTokens": 400, "temperature": 0},
-    )
-    return parse_decision(extract_json(resp["output"]["message"]["content"][0]["text"]))
+    return parse_decision(extract_json(str(agent(user))))
 
 
 # ---- orchestration -----------------------------------------------------------------------
-def run(payload: dict[str, Any], client: Any = None) -> dict[str, Any]:
+def run(payload: dict[str, Any], agent: Any = None) -> dict[str, Any]:
     """payload: {facts, prompt: naive|improved, simulated_decision?, guard?: bool}"""
     facts = parse_facts(payload["facts"])
     mode = payload.get("prompt", "improved")
-    source = "simulated" if payload.get("simulated_decision") else "bedrock"
+    source = "simulated" if payload.get("simulated_decision") else "strands-bedrock"
     try:
         proposed = (parse_decision(payload["simulated_decision"]) if source == "simulated"
-                    else call_bedrock(load_prompt(mode), payload["facts"], client))
+                    else call_agent(load_prompt(mode), payload["facts"], agent))
     except Exception as exc:  # model/parse failure must never reach the customer unvetted
         return {"source": source, "prompt": mode, "error": f"{type(exc).__name__}: {exc}",
                 "proposed": None, "guard": {"acceptable": False, "rule": "model_error",
@@ -98,7 +98,7 @@ def run(payload: dict[str, Any], client: Any = None) -> dict[str, Any]:
     final, verdict = apply_guard(facts, proposed) if payload.get("guard", True) else (
         proposed, apply_guard(facts, proposed)[1])
     return {
-        "source": source, "prompt": mode, "model": MODEL_ID if source == "bedrock" else None,
+        "source": source, "prompt": mode, "model": MODEL_ID if source != "simulated" else None,
         "proposed": decision_to_dict(proposed),
         "guard": {"acceptable": verdict.acceptable, "rule": verdict.rule, "reason": verdict.reason,
                   "enforced": payload.get("guard", True)},

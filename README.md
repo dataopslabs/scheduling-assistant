@@ -2,7 +2,7 @@
 
 Spec-driven build: `specs/requirements.md` → `specs/design.md` → `specs/tasks.md`. Review and improved instruction: `docs/REVIEW.md`.
 
-**Model proposes, code disposes.** A Bedrock model proposes a reply/wait/escalate decision; deterministic safeguards for all four cases (A conflict, B deferral, C slot, D status) validate it before the customer sees it.
+**Model proposes, code disposes.** A Strands Agent (Amazon Bedrock model) proposes a reply/wait/escalate decision; deterministic safeguards for all four cases (A conflict, B deferral, C slot, D status) validate it before the customer sees it.
 
 ## Run tests (Python 3.9+, stdlib only)
 ```bash
@@ -10,10 +10,10 @@ PYTHONPATH=backend:tests python3 -m unittest discover -s tests -v
 ```
 
 ## Run locally without AWS
-Tests use a fake Bedrock client; the UI's "Replay original bad decision" button needs no model.
+Tests use a fake Strands agent; the UI's "Replay original bad decision" button needs no model.
 
 ## Deploy (Lambda + Bedrock + Amplify)
-Prereqs: AWS CLI, SAM CLI, credentials, and **Bedrock model access enabled** for the model in `BedrockModelId` (default `us.anthropic.claude-haiku-4-5-20251001-v1:0`, a US inference profile) in your region.
+Prereqs: AWS CLI, SAM CLI, Docker (SAM builds the Strands dependencies in a Linux container), credentials, and **Bedrock model access enabled** for the model in `BedrockModelId` (default `us.anthropic.claude-haiku-4-5-20251001-v1:0`, a US inference profile) in your region.
 ```bash
 AWS_REGION=us-east-1 ./deploy.sh
 ```

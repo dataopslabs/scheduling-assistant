@@ -6,7 +6,7 @@ REGION="${AWS_REGION:-us-east-1}"; STACK="${STACK:-scheduling-safeguard}"; APP="
 
 PYTHONPATH=backend:tests python3 -m unittest discover -s tests          # never deploy a red build
 
-sam build -t infra/template.yaml
+sam build -t infra/template.yaml --use-container   # Linux wheels for strands deps (pydantic etc.)
 sam deploy --stack-name "$STACK" --region "$REGION" --resolve-s3 --capabilities CAPABILITY_IAM --no-confirm-changeset --no-fail-on-empty-changeset
 API=$(aws cloudformation describe-stacks --stack-name "$STACK" --region "$REGION" --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" --output text)
 echo "API: $API"; curl -fsS "$API/health"; echo
