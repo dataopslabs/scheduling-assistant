@@ -1,27 +1,26 @@
 name: deploy
 on:
   push:
-    branches: [develop]
+    branches: [staging]
   workflow_dispatch:
-
 permissions:
   id-token: write   # OIDC to AWS, no long-lived keys
   contents: read
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
       AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
-      STACK: scheduling-safeguard-develop
-      AMPLIFY_APP: scheduling-safeguard-ui-develop
+      MODEL_ID: ${{ vars.BEDROCK_MODEL_ID || 'us.amazon.nova-lite-v1:0' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
-      - uses: aws-actions/setup-sam@v2
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: pip install -r backend/requirements.txt
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
-      - run: ./deploy.sh   # tests -> sam build/deploy -> Amplify zip deploy -> CORS lock
+      - run: ./deploy.sh

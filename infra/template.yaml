@@ -1,32 +1,38 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Scheduling assistant - Lambda agent (Bedrock) behind an HTTP API
+Description: AI scheduling reliability - FastAPI on Lambda (Strands Agent + Bedrock) behind an HTTP API
 
 Parameters:
   BedrockModelId:
     Type: String
     Default: us.amazon.nova-lite-v1:0
-    Description: Bedrock model or inference-profile ID. Model access must be enabled in the console.
+    Description: Bedrock model or inference-profile ID used by the Strands agent.
+  AgentMode:
+    Type: String
+    Default: bedrock
+    AllowedValues: [bedrock, mock]
   AllowedOrigin:
     Type: String
     Default: '*'
-    Description: CORS origin; set to your Amplify URL (https://main.xxxx.amplifyapp.com) after first deploy.
+    Description: CORS origin (FastAPI middleware); set to the Amplify URL after first deploy.
 
 Globals:
   Function:
     Runtime: python3.12
-    Timeout: 60
+    Timeout: 29            # API Gateway HTTP API integrations time out at 30s
     MemorySize: 512
 
 Resources:
-  AgentFunction:
+  ApiFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ../backend/
-      Handler: handler.lambda_handler
+      CodeUri: backend/
+      Handler: app.main.handler
       Environment:
         Variables:
+          AGENT_MODE: !Ref AgentMode
           BEDROCK_MODEL_ID: !Ref BedrockModelId
+          CORS_ORIGINS: !Ref AllowedOrigin
       Policies:
         - Statement:
             - Effect: Allow
@@ -35,21 +41,14 @@ Resources:
                 - arn:aws:bedrock:*::foundation-model/*
                 - !Sub arn:aws:bedrock:*:${AWS::AccountId}:inference-profile/*
       Events:
-        Decide:
+        Any:
           Type: HttpApi
-          Properties: {ApiId: !Ref HttpApi, Path: /decide, Method: POST}
-        Health:
-          Type: HttpApi
-          Properties: {ApiId: !Ref HttpApi, Path: /health, Method: GET}
+          Properties: {ApiId: !Ref HttpApi, Path: '/{proxy+}', Method: ANY}
 
   HttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
-      CorsConfiguration:
-        AllowOrigins: [!Ref AllowedOrigin]
-        AllowMethods: [GET, POST, OPTIONS]
-        AllowHeaders: [content-type]
-      DefaultRouteSettings:   # cost guard: the endpoint is public and each call invokes Bedrock
+      DefaultRouteSettings:   # cost guard: public endpoint, every /api/decide may invoke Bedrock
         ThrottlingBurstLimit: 10
         ThrottlingRateLimit: 5
 

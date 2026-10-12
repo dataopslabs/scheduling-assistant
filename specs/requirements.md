@@ -9,7 +9,7 @@ The assistant's instruction ("be helpful, be proactive, offer the next step") ma
 
 | ID | Requirement |
 |---|---|
-| FR-1 | WHEN a customer message and scheduling facts are submitted, THE SYSTEM SHALL obtain a proposed decision `{action: reply\|wait\|escalate, message, committed_slot_start}` from an LLM on Amazon Bedrock. |
+| FR-1 | WHEN a case is submitted without a proposal, THE SYSTEM SHALL obtain `{action, reply}` from a Strands Agent using the Bedrock model named by `BEDROCK_MODEL_ID`. |
 | FR-2 | THE SYSTEM SHALL validate every proposed decision with deterministic code BEFORE it is returned to the customer. |
 | FR-3 (Case C) | IF a decision commits to, or affirms, a time/day that is not an available slot or the existing appointment, THEN THE SYSTEM SHALL reject it and offer up to 3 real slots (or escalate if none). |
 | FR-4 (Case D) | IF a decision states the crew will attend while crew confirmation is not `true`, or says "confirmed" while status ≠ confirmed, THEN THE SYSTEM SHALL reject it and state the true status and escalate. |
