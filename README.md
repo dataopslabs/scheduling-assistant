@@ -12,6 +12,9 @@ Strands Agents + Amazon Bedrock, FastAPI on Lambda, React/Vite on Amplify Hostin
 | E4 confirmation integrity | D | attendance promise needs crew `confirmed`; "confirmed" needs appointment confirmed |
 | E5 data uncertainty (extension) | – | missing/invalid status fails closed |
 
+## About the project (UI page)
+`#/about/problem`, `#/about/solution`, `#/about/design` show the three diagrams in `docs/images/` (served straight from this public GitHub repo via `raw.githubusercontent.com/.../staging/docs/images/`). Each page lists the key points, what is implemented in this build, and what remains on the roadmap. If the branch is renamed or deleted, update `RAW` in `frontend/src/components/AboutPage.tsx`.
+
 ## UI (three panels)
 **Use cases** (left) → **Response** (middle) → **Evidence** (right: Facts, Policy, Trace, History). The top switch selects **Test Mock Data** (replays each fixture's simulated model output, no model call) or **Test Live Agent (LLM)** (Strands agent on Amazon Bedrock, default `amazon.nova-pro-v1:0`). A *Custom scenario* lets you write a customer message, set the facts and, in mock mode, the simulated reply to test the policy.
 

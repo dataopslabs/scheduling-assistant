@@ -5,6 +5,13 @@ import TopBar from "./components/TopBar";
 import UseCasePanel, { CustomForm, DEFAULT_CUSTOM } from "./components/UseCasePanel";
 import ResponsePanel from "./components/ResponsePanel";
 import EvidencePanel from "./components/EvidencePanel";
+import AboutPage, { SECTIONS, Section } from "./components/AboutPage";
+
+// Hash routes: #/lab (default) · #/about/problem | #/about/solution | #/about/design
+function parseHash(): { page: "lab" | "about"; section: Section } {
+  const [, p, sec] = window.location.hash.split("/");
+  return { page: p === "about" ? "about" : "lab", section: (SECTIONS as string[]).includes(sec) ? (sec as Section) : "problem" };
+}
 
 const store = { get: (k: string) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* ignore */ } } };
 
@@ -20,6 +27,9 @@ function buildCustom(f: CustomForm, mode: Mode): Case {
 }
 
 export default function App() {
+  const [route, setRoute] = useState(parseHash);
+  useEffect(() => { const h = () => setRoute(parseHash()); window.addEventListener("hashchange", h); return () => window.removeEventListener("hashchange", h); }, []);
+  const go = (page: "lab" | "about", section: Section = route.section) => { window.location.hash = page === "about" ? `#/about/${section}` : "#/lab"; };
   const [mode, setMode] = useState<Mode>(() => (store.get("mode") === "live" ? "live" : "mock"));
   const [cases, setCases] = useState<Case[]>([]);
   const [config, setConfig] = useState<AppConfig | null>(null);
@@ -76,14 +86,15 @@ export default function App() {
 
   return (
     <div className="app">
-      <TopBar mode={mode} onMode={changeMode} config={config} api={api} />
+      <TopBar mode={mode} onMode={changeMode} config={config} api={api} page={route.page} onPage={(p) => go(p)} />
+      {route.page === "about" ? <AboutPage section={route.section} onSection={(sec) => go("about", sec)} onOpenLab={() => go("lab")} /> : (
       <main className="panels">
         <UseCasePanel cases={cases} datasets={datasets} selected={selected} onSelect={select} mode={mode} custom={custom} onCustom={(c) => { setCustom(c); reset(); }} loadError={loadError} />
         <ResponsePanel mode={mode} customer={scenario?.customer_message ?? ""} running={running} result={result} error={error} onRun={run}
           model={config?.model_id} scenario={scenario} custom={selected === "custom"}
           variants={variants} variantId={variantId} onVariant={pickVariant} onRunAll={runAll} batch={batch} batchRunning={batchRunning} onInspect={inspect} />
         <EvidencePanel facts={facts} result={result} history={history} running={running} />
-      </main>
+      </main>)}
     </div>
   );
 }
