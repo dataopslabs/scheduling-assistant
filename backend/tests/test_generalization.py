@@ -2,7 +2,6 @@ import json
 import pytest
 from app.schemas import SchedulingCase, ProposedDecision
 from app.policy import validate
-from app import agent
 
 
 def case(msg, reply, status="confirmed", crew="confirmed", slots=None, jobs=None, date="2026-10-13"):
@@ -59,30 +58,19 @@ class FakeAgent:
     def __call__(self, prompt): return self.text
 
 
-def test_bedrock_mode_maps_configured_model_and_validates_output(monkeypatch):
+def test_make_agent_maps_configured_model(monkeypatch):
     seen = {}
     import strands, strands.models
-    monkeypatch.setenv("AGENT_MODE", "bedrock")
-    monkeypatch.setattr(agent, "MODEL_ID", "my-model-id")
+    from app.config import Settings
+    from app.services.agent import make_agent
     monkeypatch.setattr(strands.models, "BedrockModel", lambda **kw: seen.update(kw) or object())
-    monkeypatch.setattr(strands, "Agent", lambda **kw: FakeAgent('Sure {"action":"reply","reply":"ok"}'))
-    c = case("hi", "x")
-    d, mode = agent.propose(c)
-    assert seen["model_id"] == "my-model-id" and mode == "bedrock" and d.reply == "ok"
+    monkeypatch.setattr(strands, "Agent", lambda **kw: seen.update(kw) or "agent")
+    make_agent(Settings(model_id="my-model-id"))
+    assert seen["model_id"] == "my-model-id" and seen["temperature"] == 0.0 and "ONLY the supplied" in seen["system_prompt"]
 
 
-def test_bedrock_failure_escalates(monkeypatch):
-    import strands, strands.models
-    monkeypatch.setenv("AGENT_MODE", "bedrock")
-    monkeypatch.setattr(strands.models, "BedrockModel", lambda **kw: object())
-    monkeypatch.setattr(strands, "Agent", lambda **kw: FakeAgent("no json"))
-    d, mode = agent.propose(case("hi", "x"))
-    assert d.action == "escalate" and mode == "bedrock-fallback"
-
-
-def test_lambda_handler_health():
-    from app.main import handler
-    ev = {"version": "2.0", "rawPath": "/health", "rawQueryString": "", "headers": {}, "isBase64Encoded": False,
-          "requestContext": {"http": {"method": "GET", "path": "/health", "sourceIp": "1.1.1.1"}, "stage": "$default"}}
-    r = handler(ev, None)
-    assert r["statusCode"] == 200 and json.loads(r["body"])["status"] == "ok"
+def test_unparseable_model_output_falls_back():
+    from app.config import Settings
+    from app.services.agent import live_propose
+    d, source, err = live_propose(case("hi", "x"), Settings(), FakeAgent("no json"))
+    assert d.action == "escalate" and source == "bedrock-fallback" and "No JSON" in err

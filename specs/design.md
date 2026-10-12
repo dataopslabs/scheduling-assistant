@@ -3,7 +3,7 @@
 Browser (Amplify Hosting, React/Vite, VITE_API_BASE_URL)
   -> API Gateway HTTP API (/{proxy+}, throttled 5 rps)
   -> Lambda: FastAPI via Mangum (app.main.handler)
-       /api/decide -> proposal (supplied, or Strands Agent + BedrockModel) -> policy.validate() -> final reply
+       /api/decide {mode: mock|live} -> proposal (fixture replay, or Strands Agent + BedrockModel) -> policy.evaluate() -> final reply + evidence
        /api/evaluate -> fixtures in data/cases.json -> metrics
 ```
 - `backend/app/policy.py` rules E1-E5 (see README), fail closed on missing facts.

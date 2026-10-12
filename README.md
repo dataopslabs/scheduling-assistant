@@ -12,6 +12,12 @@ Strands Agents + Amazon Bedrock, FastAPI on Lambda, React/Vite on Amplify Hostin
 | E4 confirmation integrity | D | attendance promise needs crew `confirmed`; "confirmed" needs appointment confirmed |
 | E5 data uncertainty (extension) | – | missing/invalid status fails closed |
 
+## UI (three panels)
+**Use cases** (left) → **Response** (middle) → **Evidence** (right: Facts, Policy, Trace, History). The top switch selects **Test Mock Data** (replays each fixture's simulated model output, no model call) or **Test Live Agent (LLM)** (Strands agent on Amazon Bedrock, default `amazon.nova-pro-v1:0`). A *Custom scenario* lets you write a customer message, set the facts and, in mock mode, the simulated reply to test the policy.
+
+## Backend layout (`backend/app`)
+`main.py` (app factory + Mangum `handler`) · `api/routes.py` · `config.py` (settings from env) · `schemas.py` · `policy.py` (rules E1–E5, per-rule results) · `services/{agent,decision,cases}.py`.
+
 ## Run locally
 ```bash
 cd backend && python -m venv .venv && source .venv/bin/activate
@@ -20,28 +26,22 @@ pytest -q && python -m app.evaluation
 uvicorn app.main:app --reload --port 8000
 cd ../frontend && npm install && npm run dev      # http://localhost:5173
 ```
-`AGENT_MODE=mock` (default) needs no AWS. `AGENT_MODE=bedrock` uses a Strands `Agent` with `BedrockModel(model_id=$BEDROCK_MODEL_ID)`.
+Mock mode needs no AWS. Live mode needs AWS credentials with Bedrock access to `BEDROCK_MODEL_ID`.
 
-## Deploy (Lambda + Bedrock + Amplify) — branch `staging`
+## Deploy (API Gateway + Lambda + Bedrock + Amplify) — branch `staging`
 ```bash
-export AWS_REGION=us-east-1 MODEL_ID=<bedrock model or inference-profile id>
-./deploy.sh        # tests → Lambda package → CloudFormation → React build → Amplify zip deploy → CORS lock
+export AWS_REGION=us-east-1 MODEL_ID=amazon.nova-pro-v1:0
+./deploy.sh        # tests → Lambda package → CloudFormation (HTTP API + Lambda) → React build → Amplify zip deploy → CORS lock
 ```
-Needs AWS CLI, Python 3, Node 20+, credentials, and Bedrock access to the model (no SAM/Docker). Default model `us.anthropic.claude-sonnet-5-5`, which requires a valid payment method/AWS Marketplace access in the account (otherwise Bedrock returns INVALID_PAYMENT_INSTRUMENT and the agent escalates). Non-Anthropic fallback that works without it: `us.amazon.nova-lite-v1:0`. Pushing to `staging` runs `.github/workflows/deploy.yml` (needs secret `AWS_DEPLOY_ROLE_ARN`, OIDC role; optional var `BEDROCK_MODEL_ID`).
+Needs AWS CLI, Python 3, Node 20+, credentials (no SAM/Docker). Pushing to `staging` runs `.github/workflows/deploy.yml` (secret `AWS_DEPLOY_ROLE_ARN`, OIDC; optional var `BEDROCK_MODEL_ID`).
 
 ## API
-`GET /health`, `GET /api/cases`, `POST /api/decide` (omit `proposed_decision` to ask the live agent), `POST /api/evaluate`, `GET /api/report`.
-
-## Case 1 - Solution 
-
-You can call the Scheduling API via Programatically - Currently I mocked the available Slot
-<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/5f0ca145-3524-4845-9f1e-d998c1adcbea" />
-
+`GET /health`, `GET /api/config`, `GET /api/cases`, `POST /api/decide` body `{"mode":"mock|live","case":{...}}` → decision + `evidence` (facts seen, per-rule results, model, latency, source), `POST /api/evaluate`.
 
 ## Limitations
 - Public, unauthenticated, throttled (5 rps) API: add auth before wider sharing.
 - Phrase checks are heuristics: no explicit-date parsing ("October 19th" vs weekday), paraphrase and negation gaps. Metrics are on synthetic fixtures, not live-LLM quality.
-- Live model quality varies: a small model (Nova Lite) answered C-001 with a non-answer ("checking my schedule"); the policy accepts it because it makes no false promise, but it is unhelpful. Evaluate the chosen model on paraphrased cases before relying on it.
+- Live model quality varies: a small model can answer weakly (Nova Lite answered C-001 with a non-answer) ("checking my schedule"); the policy accepts it because it makes no false promise, but it is unhelpful. Evaluate the chosen model on paraphrased cases before relying on it.
 - Before production: typed slot IDs, structured claims, adversarial corpora, human review, auth, observability, audit retention, idempotency; verify blocked proposals can never reach write APIs.
 
 ## Changes vs the uploaded reference

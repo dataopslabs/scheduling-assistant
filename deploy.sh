@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # End-to-end deploy: FastAPI on Lambda (Strands + Bedrock) + React UI on Amplify Hosting.
 # Needs: AWS CLI, python3, node/npm, credentials, Bedrock access to $MODEL_ID in $AWS_REGION. No SAM/Docker.
-# Env: AWS_REGION (us-east-1) STACK AMPLIFY_APP BRANCH MODEL_ID AGENT_MODE
+# Env: AWS_REGION (us-east-1) STACK AMPLIFY_APP BRANCH MODEL_ID
 set -euo pipefail
 REGION="${AWS_REGION:-us-east-1}"; STACK="${STACK:-scheduling-reliability-staging}"
 APP="${AMPLIFY_APP:-scheduling-reliability-ui-staging}"; BRANCH="${BRANCH:-staging}"
-MODEL="${MODEL_ID:-us.anthropic.claude-sonnet-5-5}"; MODE="${AGENT_MODE:-bedrock}"
+MODEL="${MODEL_ID:-amazon.nova-pro-v1:0}"
 
 (cd backend && python3 -m pytest -q && python3 -m app.evaluation >/dev/null)   # never deploy a red build
 
@@ -20,7 +20,7 @@ aws s3api head-bucket --bucket "$BUCKET" 2>/dev/null || aws s3 mb "s3://$BUCKET"
 aws cloudformation package --template-file .build/template.yaml --s3-bucket "$BUCKET" --output-template-file .build/packaged.yaml --region "$REGION" >/dev/null
 deploy() { aws cloudformation deploy --template-file .build/packaged.yaml --stack-name "$STACK" --region "$REGION" \
   --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND --no-fail-on-empty-changeset \
-  --parameter-overrides "BedrockModelId=$MODEL" "AgentMode=$MODE" "AllowedOrigin=$1"; }
+  --parameter-overrides "BedrockModelId=$MODEL" "AllowedOrigin=$1"; }
 deploy '*'
 API=$(aws cloudformation describe-stacks --stack-name "$STACK" --region "$REGION" --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" --output text)
 echo "API: $API"; curl -fsS "$API/health"; echo

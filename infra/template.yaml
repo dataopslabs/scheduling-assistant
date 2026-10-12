@@ -1,16 +1,12 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: AI scheduling reliability - FastAPI on Lambda (Strands Agent + Bedrock) behind an HTTP API
+Description: AI scheduling reliability - FastAPI on Lambda (Strands Agent + Bedrock) behind API Gateway (HTTP API)
 
 Parameters:
   BedrockModelId:
     Type: String
-    Default: us.anthropic.claude-sonnet-5-5
+    Default: amazon.nova-pro-v1:0
     Description: Bedrock model or inference-profile ID used by the Strands agent.
-  AgentMode:
-    Type: String
-    Default: bedrock
-    AllowedValues: [bedrock, mock]
   AllowedOrigin:
     Type: String
     Default: '*'
@@ -30,7 +26,6 @@ Resources:
       Handler: app.main.handler
       Environment:
         Variables:
-          AGENT_MODE: !Ref AgentMode
           BEDROCK_MODEL_ID: !Ref BedrockModelId
           CORS_ORIGINS: !Ref AllowedOrigin
       Policies:
