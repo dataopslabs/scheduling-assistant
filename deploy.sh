@@ -5,7 +5,7 @@
 set -euo pipefail
 REGION="${AWS_REGION:-us-east-1}"; STACK="${STACK:-scheduling-reliability-staging}"
 APP="${AMPLIFY_APP:-scheduling-reliability-ui-staging}"; BRANCH="${BRANCH:-staging}"
-MODEL="${MODEL_ID:-us.amazon.nova-lite-v1:0}"; MODE="${AGENT_MODE:-bedrock}"
+MODEL="${MODEL_ID:-us.anthropic.claude-sonnet-5-5}"; MODE="${AGENT_MODE:-bedrock}"
 
 (cd backend && python3 -m pytest -q && python3 -m app.evaluation >/dev/null)   # never deploy a red build
 
@@ -27,7 +27,7 @@ echo "API: $API"; curl -fsS "$API/health"; echo
 
 # --- frontend: build with the API URL baked in, zip-deploy to Amplify
 (cd frontend && npm ci --no-audit --no-fund && VITE_API_BASE_URL="$API" npm run build)
-APP_ID=$(aws amplify list-apps --region "$REGION" --query "apps[?name=='$APP'].appId | [0]" --output text)
+APP_ID=$(aws amplify list-apps --region "$REGION" --max-results 100 --no-paginate --query "apps[?name=='$APP'].appId | [0]" --output text)
 if [ "$APP_ID" = "None" ]; then
   APP_ID=$(aws amplify create-app --name "$APP" --region "$REGION" --query app.appId --output text)
   aws amplify create-branch --app-id "$APP_ID" --branch-name "$BRANCH" --region "$REGION" >/dev/null

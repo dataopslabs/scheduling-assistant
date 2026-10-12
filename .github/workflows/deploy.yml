@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
-      MODEL_ID: ${{ vars.BEDROCK_MODEL_ID || 'us.amazon.nova-lite-v1:0' }}
+      MODEL_ID: ${{ vars.BEDROCK_MODEL_ID || 'us.anthropic.claude-sonnet-5-5' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

@@ -27,7 +27,7 @@ cd ../frontend && npm install && npm run dev      # http://localhost:5173
 export AWS_REGION=us-east-1 MODEL_ID=<bedrock model or inference-profile id>
 ./deploy.sh        # tests → Lambda package → CloudFormation → React build → Amplify zip deploy → CORS lock
 ```
-Needs AWS CLI, Python 3, Node 20+, credentials, and Bedrock access to the model (no SAM/Docker). Default model `us.amazon.nova-lite-v1:0`. Anthropic models additionally need AWS Marketplace permissions in the account. Pushing to `staging` runs `.github/workflows/deploy.yml` (needs secret `AWS_DEPLOY_ROLE_ARN`, OIDC role; optional var `BEDROCK_MODEL_ID`).
+Needs AWS CLI, Python 3, Node 20+, credentials, and Bedrock access to the model (no SAM/Docker). Default model `us.anthropic.claude-sonnet-5-5`, which requires a valid payment method/AWS Marketplace access in the account (otherwise Bedrock returns INVALID_PAYMENT_INSTRUMENT and the agent escalates). Non-Anthropic fallback that works without it: `us.amazon.nova-lite-v1:0`. Pushing to `staging` runs `.github/workflows/deploy.yml` (needs secret `AWS_DEPLOY_ROLE_ARN`, OIDC role; optional var `BEDROCK_MODEL_ID`).
 
 ## API
 `GET /health`, `GET /api/cases`, `POST /api/decide` (omit `proposed_decision` to ask the live agent), `POST /api/evaluate`, `GET /api/report`.

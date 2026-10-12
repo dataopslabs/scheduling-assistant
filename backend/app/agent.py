@@ -1,6 +1,6 @@
 import json, os
 from .schemas import SchedulingCase, ProposedDecision
-MODEL_ID = os.getenv("BEDROCK_MODEL_ID", "us.amazon.nova-lite-v1:0")
+MODEL_ID = os.getenv("BEDROCK_MODEL_ID", "us.anthropic.claude-sonnet-5-5")
 SYSTEM_PROMPT = """Use only supplied scheduling facts. Never invent slots, conflicts, or confirmations. Treat missing data as unknown. Respect customer intent. Return JSON with action (reply, wait, escalate) and reply. You propose; a separate policy validator checks the proposal."""
 def mock_proposal(case):
     msg = case.customer_message.casefold()

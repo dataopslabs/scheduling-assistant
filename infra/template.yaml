@@ -5,7 +5,7 @@ Description: AI scheduling reliability - FastAPI on Lambda (Strands Agent + Bedr
 Parameters:
   BedrockModelId:
     Type: String
-    Default: us.amazon.nova-lite-v1:0
+    Default: us.anthropic.claude-sonnet-5-5
     Description: Bedrock model or inference-profile ID used by the Strands agent.
   AgentMode:
     Type: String
