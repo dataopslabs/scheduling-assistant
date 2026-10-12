@@ -29,3 +29,6 @@ Repo-connected Amplify instead: connect this repo in the console, set env var `A
 
 ## AI use
 Built with Claude. Checked by reading the rules against the task, running the tests (original decisions fail, valid ones pass), validating the template with cfn-lint, and driving the UI in headless Chromium against the real handler. Extends the supplied `scheduling-safeguard` Case C solution to all four cases.
+
+## CI/CD (`develop` branch)
+Pushing to `develop` runs `.github/workflows/deploy.yml`, which calls `./deploy.sh`. One-time setup: create an IAM role trusting GitHub OIDC for this repo (permissions: CloudFormation, Lambda, API Gateway, IAM pass-role, S3, Amplify, Bedrock invoke) and store its ARN as repo secret `AWS_DEPLOY_ROLE_ARN`. Optional repo variable `AWS_REGION`.
