@@ -1,0 +1,13 @@
+version: 1
+applications:
+  - appRoot: frontend
+    frontend:
+      phases:
+        build:
+          commands:
+            # API_URL is an Amplify environment variable (the SAM stack output "ApiUrl")
+            - echo "window.API_URL='${API_URL}';" > config.js
+      artifacts:
+        baseDirectory: .
+        files:
+          - '**/*'

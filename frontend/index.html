@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scheduling Safeguard</title>
+<script src="config.js"></script>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--fg:#14181f;--mute:#5d6675;--line:#e1e5ec;--accent:#2457d6;--ok:#14794a;--okbg:#e5f6ed;--bad:#b3261e;--badbg:#fdeceb;--warn:#8a5a00;--warnbg:#fff4dc}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1218;--card:#181c24;--fg:#e8ebf1;--mute:#98a1b2;--line:#2a303c;--accent:#7a9bff;--ok:#5fd09a;--okbg:#12281d;--bad:#ff8a80;--badbg:#321a19;--warn:#f0c060;--warnbg:#2f2610}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+header{padding:20px 16px 4px;max-width:1100px;margin:auto}h1{margin:0;font-size:22px}header p{margin:4px 0 0;color:var(--mute)}
+main{max-width:1100px;margin:auto;padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:820px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);margin:0 0 10px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.tabs button{border:1px solid var(--line);background:transparent;color:var(--fg);padding:6px 12px;border-radius:999px;cursor:pointer;font:inherit}
+.tabs button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+label{display:block;font-size:13px;color:var(--mute);margin:10px 0 4px}
+textarea,input[type=text],select{width:100%;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);padding:8px;font:inherit}
+textarea.json{font:12px/1.4 ui-monospace,Menlo,monospace;min-height:170px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.btn{border:0;border-radius:8px;padding:9px 14px;font:inherit;font-weight:600;cursor:pointer;background:var(--accent);color:#fff}
+.btn.sec{background:transparent;color:var(--fg);border:1px solid var(--line)}.btn:disabled{opacity:.5;cursor:wait}
+.bubble{border-radius:10px;padding:10px 12px;background:var(--bg);border:1px solid var(--line);white-space:pre-wrap}
+.pill{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:2px 9px;margin-right:6px}
+.ok{background:var(--okbg);color:var(--ok)}.bad{background:var(--badbg);color:var(--bad)}.warn{background:var(--warnbg);color:var(--warn)}.mute{background:var(--bg);color:var(--mute);border:1px solid var(--line)}
+.stack>*+*{margin-top:14px}.small{font-size:13px;color:var(--mute)}.final{border-color:var(--ok)}
+.hint{margin-top:10px;font-size:13px;color:var(--mute)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Scheduling assistant safeguard</h1>
+  <p>An LLM proposes a decision; deterministic code checks it against the facts before the customer sees it.</p>
+</header>
+<main>
+  <section class="card">
+    <h2>1 · Scenario</h2>
+    <div class="tabs" id="tabs" role="group" aria-label="Scenario"></div>
+    <label for="msg">Customer message</label>
+    <input type="text" id="msg">
+    <label for="facts">Scheduling facts (JSON, editable)</label>
+    <textarea id="facts" class="json" spellcheck="false"></textarea>
+    <label for="prompt">Instruction given to the model</label>
+    <select id="prompt">
+      <option value="improved">Improved (grounded) instruction</option>
+      <option value="naive">Original: "be proactive and offer the next step"</option>
+    </select>
+    <label><input type="checkbox" id="guard" checked> Enforce safeguard before replying</label>
+    <div class="row">
+      <button class="btn" id="live">Run live agent (Bedrock)</button>
+      <button class="btn sec" id="replay">Replay original bad decision</button>
+    </div>
+    <div class="hint" id="api"></div>
+  </section>
+
+  <section class="card stack" aria-live="polite">
+    <div><h2>2 · Model's proposed decision</h2><div id="proposed" class="small">Run a scenario.</div></div>
+    <div><h2>3 · Safeguard verdict</h2><div id="verdict" class="small">—</div></div>
+    <div><h2>4 · Sent to customer</h2><div id="final" class="small">—</div></div>
+  </section>
+</main>
+<script>
+const NOW="2026-10-14T09:00:00"; // Wednesday, so "this Saturday" = 17 Oct
+const appt=(status,crew_confirmed)=>({start:"2026-10-15T09:00:00",end:"2026-10-15T12:00:00",status,crew:"crew-1",crew_confirmed});
+const SCENARIOS={
+ A:{title:"A · Conflict?",facts:{now:NOW,customer_message:"Is my installation still happening tomorrow?",appointment:appt("confirmed",null),other_jobs:[{start:"2026-10-15T08:00:00",end:"2026-10-15T10:00:00",crew:"crew-1",status:"completed"}]},
+    bad:{action:"escalate",message:"There is a scheduling conflict, so your installation may be delayed."}},
+ B:{title:"B · Away",facts:{now:NOW,customer_message:"I'm away from home. I'll let you know when I'm back."},
+    bad:{action:"reply",message:"Can we book you for tomorrow morning?"}},
+ C:{title:"C · Saturday",facts:{now:NOW,customer_message:"Can you come this Saturday?",available_slots:[{start:"2026-10-19T10:00:00",end:"2026-10-19T12:00:00"},{start:"2026-10-20T14:00:00",end:"2026-10-20T16:00:00"}]},
+    bad:{action:"reply",message:"Yes, we can come this Saturday."}},
+ D:{title:"D · Crew?",facts:{now:NOW,customer_message:"Is the crew coming tomorrow?",appointment:appt("tentative",null)},
+    bad:{action:"reply",message:"Yes, the crew will be there tomorrow."}}
+};
+const $=id=>document.getElementById(id);
+let current="C";
+const esc=s=>String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const bubble=(d,cls="")=>`<div class="bubble ${cls}"><span class="pill mute">${esc(d.action)}</span>${esc(d.message)}</div>`;
+
+function select(k){
+  current=k; const s=SCENARIOS[k];
+  $("facts").value=JSON.stringify(s.facts,null,2); $("msg").value=s.facts.customer_message;
+  document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===k));
+  ["proposed","verdict","final"].forEach(i=>{$(i).className="small";$(i).textContent=i==="proposed"?"Run a scenario.":"—"});
+}
+for(const k in SCENARIOS){const b=document.createElement("button");b.dataset.k=k;b.textContent=SCENARIOS[k].title;b.onclick=()=>select(k);$("tabs").append(b)}
+$("api").textContent=window.API_URL?`API: ${window.API_URL}`:"No API_URL configured: set it in Amplify env vars (see README).";
+
+async function go(simulated){
+  let facts; try{facts=JSON.parse($("facts").value)}catch(e){return alert("Facts JSON is invalid: "+e.message)}
+  facts.customer_message=$("msg").value;
+  const body={facts,prompt:$("prompt").value,guard:$("guard").checked};
+  if(simulated) body.simulated_decision=SCENARIOS[current].bad;
+  const btns=[$("live"),$("replay")]; btns.forEach(b=>b.disabled=true);
+  try{
+    const r=await fetch(window.API_URL.replace(/\/$/,"")+"/decide",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)});
+    const out=await r.json(); if(!r.ok) throw new Error(out.error||r.status);
+    render(out);
+  }catch(e){$("verdict").className="small";$("verdict").innerHTML=`<span class="pill bad">error</span>${esc(e.message)}`}
+  finally{btns.forEach(b=>b.disabled=false)}
+}
+function render(o){
+  $("proposed").innerHTML=o.proposed?`${bubble(o.proposed)}<div class="small">source: ${o.source}${o.model?" · "+esc(o.model):""} · prompt: ${o.prompt}</div>`:`<span class="pill bad">model error</span>${esc(o.error||"")}`;
+  const g=o.guard;
+  $("verdict").innerHTML=g.acceptable?`<span class="pill ok">ACCEPTED</span>${esc(g.reason)}`
+    :`<span class="pill ${g.enforced===false?"warn":"bad"}">${g.enforced===false?"WOULD BLOCK (guard off)":"BLOCKED"}</span><span class="pill mute">rule: ${esc(g.rule)}</span>${esc(g.reason)}`;
+  $("final").innerHTML=bubble(o.final,"final");
+}
+$("live").onclick=()=>go(false); $("replay").onclick=()=>go(true);
+select("C");
+</script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Scheduling assistant - Lambda agent (Bedrock) behind an HTTP API
+
+Parameters:
+  BedrockModelId:
+    Type: String
+    Default: us.anthropic.claude-haiku-4-5-20251001-v1:0
+    Description: Bedrock model or inference-profile ID. Model access must be enabled in the console.
+  AllowedOrigin:
+    Type: String
+    Default: '*'
+    Description: CORS origin; set to your Amplify URL (https://main.xxxx.amplifyapp.com) after first deploy.
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Timeout: 30
+    MemorySize: 256
+
+Resources:
+  AgentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../backend/
+      Handler: handler.lambda_handler
+      Environment:
+        Variables:
+          BEDROCK_MODEL_ID: !Ref BedrockModelId
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: [bedrock:InvokeModel]
+              Resource:
+                - arn:aws:bedrock:*::foundation-model/*
+                - !Sub arn:aws:bedrock:*:${AWS::AccountId}:inference-profile/*
+      Events:
+        Decide:
+          Type: HttpApi
+          Properties: {ApiId: !Ref HttpApi, Path: /decide, Method: POST}
+        Health:
+          Type: HttpApi
+          Properties: {ApiId: !Ref HttpApi, Path: /health, Method: GET}
+
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins: [!Ref AllowedOrigin]
+        AllowMethods: [GET, POST, OPTIONS]
+        AllowHeaders: [content-type]
+      DefaultRouteSettings:   # cost guard: the endpoint is public and each call invokes Bedrock
+        ThrottlingBurstLimit: 10
+        ThrottlingRateLimit: 5
+
+Outputs:
+  ApiUrl:
+    Value: !Sub https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com
