@@ -13,7 +13,7 @@ PYTHONPATH=backend:tests python3 -m unittest discover -s tests -v
 Tests use a fake Strands agent; the UI's "Replay original bad decision" button needs no model.
 
 ## Deploy (Lambda + Bedrock + Amplify)
-Prereqs: AWS CLI, SAM CLI, Docker (SAM builds the Strands dependencies in a Linux container), credentials, and **Bedrock model access enabled** for the model in `BedrockModelId` (default `us.anthropic.claude-haiku-4-5-20251001-v1:0`, a US inference profile) in your region.
+Prereqs: AWS CLI (no SAM or Docker needed; pip fetches Linux wheels), credentials, and **Bedrock model access enabled** for the model in `BedrockModelId` (default `us.amazon.nova-lite-v1:0`; Anthropic models need AWS Marketplace permissions/billing, set `BedrockModelId` to use one) in your region.
 ```bash
 AWS_REGION=us-east-1 ./deploy.sh
 ```

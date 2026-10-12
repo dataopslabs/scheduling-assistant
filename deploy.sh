@@ -1,13 +1,22 @@
 #!/usr/bin/env bash
 # End-to-end deploy: Lambda + HTTP API (SAM) -> Amplify static hosting (manual zip deploy).
-# Prereqs: AWS CLI + SAM CLI, credentials, Bedrock model access enabled in $AWS_REGION.
+# Prereqs: AWS CLI (no SAM/Docker needed), credentials, Bedrock model access enabled in $AWS_REGION.
 set -euo pipefail
-REGION="${AWS_REGION:-us-east-1}"; STACK="${STACK:-scheduling-safeguard}"; APP="${AMPLIFY_APP:-scheduling-safeguard-ui}"; BRANCH=main
+REGION="${AWS_REGION:-us-east-1}"; STACK="${STACK:-scheduling-safeguard}"; APP="${AMPLIFY_APP:-scheduling-safeguard-ui}"; BRANCH=main; MODEL="${MODEL_ID:-us.amazon.nova-lite-v1:0}"
 
 PYTHONPATH=backend:tests python3 -m unittest discover -s tests          # never deploy a red build
 
-sam build -t infra/template.yaml --use-container   # Linux wheels for strands deps (pydantic etc.)
-sam deploy --stack-name "$STACK" --region "$REGION" --resolve-s3 --capabilities CAPABILITY_IAM --no-confirm-changeset --no-fail-on-empty-changeset
+# Package without Docker/SAM: Linux wheels for the Lambda runtime (strands deps include compiled pydantic-core)
+rm -rf .build && mkdir -p .build/backend
+pip install -q -r backend/requirements.txt -t .build/backend --platform manylinux2014_x86_64 --python-version 3.12 --implementation cp --only-binary=:all:
+cp -r backend/*.py backend/prompts .build/backend/
+sed 's#CodeUri: ../backend/#CodeUri: backend/#' infra/template.yaml > .build/template.yaml
+ACCT=$(aws sts get-caller-identity --query Account --output text)
+BUCKET="$STACK-artifacts-$ACCT-$REGION"
+aws s3api head-bucket --bucket "$BUCKET" 2>/dev/null || aws s3 mb "s3://$BUCKET" --region "$REGION"
+aws cloudformation package --template-file .build/template.yaml --s3-bucket "$BUCKET" --output-template-file .build/packaged.yaml --region "$REGION"
+DEPLOY=(aws cloudformation deploy --template-file .build/packaged.yaml --stack-name "$STACK" --region "$REGION" --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND --no-fail-on-empty-changeset)
+"${DEPLOY[@]}" --parameter-overrides "BedrockModelId=$MODEL"
 API=$(aws cloudformation describe-stacks --stack-name "$STACK" --region "$REGION" --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" --output text)
 echo "API: $API"; curl -fsS "$API/health"; echo
 
@@ -25,6 +34,5 @@ curl -fsS -T "$TMP/../ui.zip" "$URL"
 aws amplify start-deployment --app-id "$APP_ID" --branch-name "$BRANCH" --job-id "$JOB" --region "$REGION" >/dev/null
 
 # tighten CORS to the Amplify origin
-sam deploy --stack-name "$STACK" --region "$REGION" --resolve-s3 --capabilities CAPABILITY_IAM --no-confirm-changeset --no-fail-on-empty-changeset \
-  --parameter-overrides "AllowedOrigin=https://$BRANCH.$DOMAIN"
+"${DEPLOY[@]}" --parameter-overrides "BedrockModelId=$MODEL" "AllowedOrigin=https://$BRANCH.$DOMAIN"
 echo "UI: https://$BRANCH.$DOMAIN"

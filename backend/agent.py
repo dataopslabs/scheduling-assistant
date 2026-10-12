@@ -11,7 +11,7 @@ from typing import Any, Optional
 from safeguard import (Appointment, Job, ProposedDecision, SchedulingFacts, Slot, apply_guard)
 
 PROMPTS = Path(__file__).parent / "prompts"
-MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "us.anthropic.claude-haiku-4-5-20251001-v1:0")
+MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "us.amazon.nova-lite-v1:0")
 
 OUTPUT_FORMAT = (
     'Respond with JSON only, no prose: {"action": "reply"|"wait"|"escalate", "message": "<customer reply>", '

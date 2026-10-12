@@ -5,7 +5,7 @@ Description: Scheduling assistant - Lambda agent (Bedrock) behind an HTTP API
 Parameters:
   BedrockModelId:
     Type: String
-    Default: us.anthropic.claude-haiku-4-5-20251001-v1:0
+    Default: us.amazon.nova-lite-v1:0
     Description: Bedrock model or inference-profile ID. Model access must be enabled in the console.
   AllowedOrigin:
     Type: String
