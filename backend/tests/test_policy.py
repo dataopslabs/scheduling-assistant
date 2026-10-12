@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from app.schemas import SchedulingCase
 from app.policy import validate
-CASES=json.loads((Path(__file__).resolve().parents[1]/"data"/"cases.json").read_text())
+CASES=json.loads((Path(__file__).resolve().parents[1]/"fixtures"/"synthetic_cases.json").read_text())
 @pytest.mark.parametrize("raw",CASES,ids=[x["case_id"] for x in CASES])
 def test_expected_policy_result(raw):
     c=SchedulingCase.model_validate(raw)

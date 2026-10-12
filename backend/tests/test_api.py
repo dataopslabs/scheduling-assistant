@@ -1,7 +1,6 @@
+import json
 from fastapi.testclient import TestClient
 from app.main import app, handler
-from app.services import agent as agent_svc
-import json
 
 client = TestClient(app)
 
@@ -19,46 +18,45 @@ def test_cases():
     assert len(client.get("/api/cases").json()) == 10
 
 
-def test_mock_mode_blocks_unsafe_fixture_with_evidence():
-    r = client.post("/api/decide", json={"mode": "mock", "case": case("D-001")})
-    j = r.json()
-    assert r.status_code == 200 and j["acceptable"] is False and j["final_action"] == "escalate"
+def test_mock_mode_blocks_unsafe_fixture_and_returns_evidence():
+    j = client.post("/api/decide", json={"mode": "mock", "case": case("D-001")}).json()
+    assert j["acceptable"] is False and j["resolution"] == "rewritten" and j["final_action"] == "escalate"
     ev = j["evidence"]
     assert ev["source"] == "fixture" and ev["model_id"] is None and ev["latency_ms"] >= 0
     assert "proposed_decision" not in ev["facts"] and "expected" not in ev["facts"]
     status = {x["rule_id"]: x["status"] for x in ev["rules"]}
     assert status["E4_CONFIRMATION_INTEGRITY"] == "blocked" and status["E1_CONFLICT_ACCURACY"] == "passed"
-    assert [x["rule_id"][:2] for x in ev["rules"]] == ["E1", "E2", "E3", "E4", "E5"]
+    assert [s["key"] for s in ev["pipeline"]][:5] == ["request_reviewer", "decider", "python_tools", "response_writer", "final_guard"]
+    assert ev["judgment"]["confidence"] >= 0.9 and ev["evidence_pack"]["crew_confirmation"] == "unknown"
 
 
 def test_mock_mode_accepts_valid_fixture():
     j = client.post("/api/decide", json={"mode": "mock", "case": case("D-002")}).json()
-    assert j["acceptable"] is True and j["final_reply"] == j["proposed_decision"]["reply"]
+    assert j["acceptable"] is True and j["resolution"] == "approved" and j["final_reply"] == j["proposed_decision"]["reply"]
 
 
-def test_e5_skips_other_rules():
+def test_e5_skips_other_rules_and_ends_in_a_safe_response():
     j = client.post("/api/decide", json={"mode": "mock", "case": case("E-001")}).json()
     status = {x["rule_id"][:2]: x["status"] for x in j["evidence"]["rules"]}
-    assert status["E5"] == "blocked" and status["E1"] == status["E4"] == "skipped"
+    assert status["E5"] == "blocked" and status["E1"] == status["E4"] == "skipped" and j["resolution"] == "safe_response"
 
 
-def test_live_mode_uses_agent_and_records_model(monkeypatch):
-    class Fake:
-        def __call__(self, p):
-            assert "proposed_decision" not in p  # the agent never sees the simulated answer
-            return '{"action":"reply","reply":"Yes, we can come this Saturday."}'
-    monkeypatch.setattr(agent_svc, "make_agent", lambda s: Fake())
+def test_live_mode_runs_all_three_agents(fake_llm):
+    f = fake_llm(reviewer={"intent": "availability_check", "requested_day": "saturday", "summary": "x"},
+                 decider={"next_action": "offer_slots", "confidence": 0.95, "reason": "r"},
+                 writer={"action": "reply", "reply": "Yes, we can come this Saturday."})
     j = client.post("/api/decide", json={"mode": "live", "case": case("C-001")}).json()
     assert j["evidence"]["source"] == "bedrock" and j["evidence"]["model_id"] == "amazon.nova-pro-v1:0"
-    assert j["acceptable"] is False and "Monday" in j["final_reply"]
+    assert j["acceptable"] is False and j["resolution"] == "safe_response"      # the fake writer repeats its unsafe promise on rewrite
+    assert "Monday 10:00" in j["final_reply"]
+    assert all(len(f[r].prompts) >= 1 for r in ("reviewer", "decider", "writer"))
 
 
-def test_live_failure_escalates_and_records_error(monkeypatch):
-    def boom(s): raise RuntimeError("AccessDenied")
-    monkeypatch.setattr(agent_svc, "make_agent", boom)
+def test_live_failure_escalates_to_human_and_records_error(fake_llm):
+    fake_llm(reviewer=RuntimeError("AccessDenied"))
     j = client.post("/api/decide", json={"mode": "live", "case": case("C-001")}).json()
     assert j["evidence"]["source"] == "bedrock-fallback" and "AccessDenied" in j["evidence"]["error"]
-    assert j["final_action"] == "escalate"
+    assert j["final_action"] == "escalate" and j["resolution"] == "human_escalation"
 
 
 def test_validation_error_is_422():

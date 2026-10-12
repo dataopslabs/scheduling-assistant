@@ -37,8 +37,8 @@ const CONTENT: Record<Section, Content> = {
       ["4 · Draft", "A response writer uses only the evidence pack. It has no scheduling tools."],
       ["5 · Validate", "Final guard checks every date, slot, status and confirmation claim; one rewrite, then safe holding reply or human."],
     ],
-    built: ["Strands agent on Amazon Bedrock proposes a reply and action.", "Python policy rules E1–E5 verify every claim against the facts.", "A blocked proposal is replaced by a safe alternative or escalation.", "Read-only: no code path can modify an appointment."],
-    next: ["Separate request-reviewer and response-writer agents", "Strands Decider with the 0.9 confidence gate", "Evidence pack from the scheduling API and appointment database", "Run in Amazon Bedrock AgentCore Runtime", "One-rewrite loop in the final guard"],
+    built: ["All five stages run end to end: reviewer, Strands Decider (typed judgment, 0.9 confidence gate), Python tools and evidence pack, response writer, final guard.", "One rewrite on a failed validation, then a fixed safe response or human escalation.", "Python is the only writer; a booking needs agreement to a specific available slot (dry-run in this demo).", "Mock mode replays recorded unsafe replies through the same guard."],
+    next: ["A real scheduling API and appointment database (the tool layer is backed by synthetic data)", "A real human-agent queue (escalation returns a holding reply)", "Run in Amazon Bedrock AgentCore Runtime", "Calibrate the Decider confidence against labelled cases"],
   },
   design: {
     label: "Design", file: "03-design.webp",
@@ -52,8 +52,8 @@ const CONTENT: Record<Section, Content> = {
       ["Evidence and final guard", "Structured evidence pack; unsupported dates, slots, statuses or crew claims are rejected."],
       ["Automated tests", "Each rule has a rejecting and an accepting test, plus regression tests for every case."],
     ],
-    built: ["FastAPI app on Lambda behind API Gateway (api/, services/, config.py, schemas.py).", "policy.py with rule functions E1–E5 and per-rule results.", "services/agent.py (Strands + Bedrock) and services/decision.py (propose → validate → respond).", "68 automated tests, including 30 synthetic datasets."],
-    next: ["Split policies/ into availability, conflict and confirmation modules", "evidence_builder and scheduling_api tool layer", "Typed decider_client with confidence"],
+    built: ["agents/ (request_reviewer, decider_client, response_writer): typed JSON, no tools.", "tools/scheduling_api.py: the only reader of the system of record and the only writer.", "services/ (scheduling_service, evidence_builder, response_guard) and policies/ (availability, conflict, confirmation, intent, data rules).", "168 automated tests, including 30 synthetic datasets, per-rule accept and reject tests, and the full pipeline."],
+    next: ["Typed slot IDs end to end instead of text matching", "A production scheduling API behind tools/scheduling_api.py", "Observability and audit retention for every decision"],
   },
 };
 

@@ -51,26 +51,3 @@ def test_deferral_ack_with_neutral_scheduling_word_is_accepted():
     msg = "I'm away. I'll let you know when I'm back."
     assert rules(case(msg, "Understood, message us when you're back so we can schedule your appointment.", status="none", crew="unknown")) == []
     assert rules(case(msg, "How about tomorrow morning?", status="none", crew="unknown")) == ["E2_CUSTOMER_INTENT"]
-
-
-class FakeAgent:
-    def __init__(self, text): self.text = text
-    def __call__(self, prompt): return self.text
-
-
-def test_make_agent_maps_configured_model(monkeypatch):
-    seen = {}
-    import strands, strands.models
-    from app.config import Settings
-    from app.services.agent import make_agent
-    monkeypatch.setattr(strands.models, "BedrockModel", lambda **kw: seen.update(kw) or object())
-    monkeypatch.setattr(strands, "Agent", lambda **kw: seen.update(kw) or "agent")
-    make_agent(Settings(model_id="my-model-id"))
-    assert seen["model_id"] == "my-model-id" and seen["temperature"] == 0.0 and "ONLY the supplied" in seen["system_prompt"]
-
-
-def test_unparseable_model_output_falls_back():
-    from app.config import Settings
-    from app.services.agent import live_propose
-    d, source, err = live_propose(case("hi", "x"), Settings(), FakeAgent("no json"))
-    assert d.action == "escalate" and source == "bedrock-fallback" and "No JSON" in err

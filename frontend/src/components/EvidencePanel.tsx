@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Case, Decision, HistoryRow } from "../types";
 
-type Tab = "facts" | "policy" | "trace" | "history";
+type Tab = "facts" | "pipeline" | "policy" | "trace" | "history";
 interface Props { facts: Record<string, any> | null; result: Decision | null; history: HistoryRow[]; running: boolean }
 
 const KV = ({ k, v }: { k: string; v: React.ReactNode }) => <div className="kv"><span>{k}</span><div>{v}</div></div>;
@@ -12,7 +12,7 @@ export default function EvidencePanel({ facts, result, history, running }: Props
   const [tab, setTab] = useState<Tab>("facts");
   const f = (result?.evidence.facts ?? facts) as (Partial<Case> & Record<string, any>) | null;
   const ev = result?.evidence;
-  const tabs: [Tab, string][] = [["facts", "Facts"], ["policy", "Policy"], ["trace", "Trace"], ["history", `History${history.length ? ` (${history.length})` : ""}`]];
+  const tabs: [Tab, string][] = [["facts", "Facts"], ["pipeline", "Pipeline"], ["policy", "Policy"], ["trace", "Trace"], ["history", `History${history.length ? ` (${history.length})` : ""}`]];
   return (
     <section className="panel" aria-label="Evidence">
       <div className="phead"><div><h2>Evidence</h2><p>Data and decision behind this run</p></div></div>
@@ -27,8 +27,23 @@ export default function EvidencePanel({ facts, result, history, running }: Props
           <KV k="Other jobs" v={f.other_jobs?.length ? <ul className="plain">{f.other_jobs.map((j: any, i: number) => <li key={i}>{j.job_id ?? "job"} {badge(j.status)}</li>)}</ul> : <span className="mute">None</span>} />
         </>) : <p className="mute">Select a use case.</p>)}
 
+        {tab === "pipeline" && (ev ? (<>
+          <p className="hint">AI proposes · the Decider judges · Python verifies · the system of record confirms.</p>
+          {ev.pipeline.map((st, i) => (
+            <div className={"step " + st.status} key={st.key + i}>
+              <span className="sn">{i + 1}</span>
+              <div><b>{st.name}</b><small>{st.detail || "—"}</small></div>
+              <span className="sms">{st.status === "skipped" ? "skipped" : `${st.ms} ms`}</span>
+            </div>))}
+          {ev.judgment && <><div className="jhead"><span>Decider judgment</span></div>
+            <div className="conf"><div style={{ width: `${Math.round(ev.judgment.confidence * 100)}%` }} className={ev.judgment.confidence >= 0.9 ? "hi" : "lo"} /></div>
+            <small className="mute">{ev.judgment.next_action} · confidence {ev.judgment.confidence.toFixed(2)} (gate 0.90) · {ev.judgment.reason}</small></>}
+          {ev.draft_request && <><div className="jhead"><span>Draft request (reviewer)</span></div><pre>{JSON.stringify(ev.draft_request, null, 2)}</pre></>}
+          {ev.evidence_pack && <><div className="jhead"><span>Evidence pack (Python)</span></div><pre>{JSON.stringify(ev.evidence_pack, null, 2)}</pre></>}
+        </>) : <p className="mute">{running ? "Running…" : "Run the scenario to see the pipeline."}</p>)}
+
         {tab === "policy" && (ev ? (<>
-          <p className="hint">Deterministic rules applied to the proposal. {result?.acceptable ? "All passed." : "Blocked rules explain why."}</p>
+          <p className="hint">Deterministic rules applied to the first draft. {result?.acceptable ? "All passed." : "Blocked rules explain why."}</p>
           {ev.rules.map((r) => (
             <div className={"rule " + r.status} key={r.rule_id}>
               <div className="rule-h"><span className="rid">{r.rule_id.split("_")[0]}</span><b>{r.name}</b>
@@ -46,7 +61,7 @@ export default function EvidencePanel({ facts, result, history, running }: Props
           <KV k="Latency" v={<>{ev.latency_ms} ms</>} />
           {ev.error && <div className="notice bad"><b>Agent error</b><br />{ev.error}</div>}
           <div className="jhead"><span>Decision record</span><button className="mini" onClick={() => navigator.clipboard?.writeText(JSON.stringify(result, null, 2))}>Copy JSON</button></div>
-          <pre>{JSON.stringify({ proposed: result!.proposed_decision, verdict: result!.acceptable ? "approved" : "blocked", findings: result!.findings.map((x) => x.rule_id), final: { action: result!.final_action, reply: result!.final_reply } }, null, 2)}</pre>
+          <pre>{JSON.stringify({ proposed: result!.proposed_decision, resolution: result!.resolution, findings: result!.findings.map((x) => x.rule_id), final: { action: result!.final_action, reply: result!.final_reply } }, null, 2)}</pre>
         </>) : <p className="mute">{running ? "Running…" : "Run the scenario to see the trace."}</p>)}
 
         {tab === "history" && (history.length ? (

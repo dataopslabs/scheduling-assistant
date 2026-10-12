@@ -1,60 +1,103 @@
-# AI Scheduling Reliability Platform
+# Guarded Scheduling Agent
 
-Strands Agents + Amazon Bedrock, FastAPI on Lambda, React/Vite on Amplify Hosting, deterministic policy validation and a five-category evaluation. **All data is synthetic; no real appointment is booked.** Spec: `specs/`. Case review: `docs/REVIEW.md`.
+**AI proposes. The Decider judges. Python verifies. The system of record confirms.**
 
-**Model proposes, policy disposes.** The agent only proposes `{action, reply}`; `backend/app/policy.py` validates it and the API returns the safe final reply.
+A customer-scheduling assistant built so that a plausible-sounding answer is never mistaken for a correct scheduling decision. LLMs interpret and communicate; deterministic Python verifies every fact and owns every scheduling write. Strands Agents + Amazon Bedrock, FastAPI on Lambda behind API Gateway, React/Vite on Amplify Hosting. **All data is synthetic; no real appointment is booked or modified.**
 
+See the *About the project* page in the UI (Problem → Solution → Design diagrams in `docs/images/`).
+
+## The pipeline
+
+```
+Customer message
+  1 RequestReviewer (LLM)  message → structured draft request           no facts, no tools
+  2 Strands Decider (LLM)  typed judgment + confidence                   < 0.9 → human review
+  3 Python rules + tools   read verified facts, build EVIDENCE PACK,     the only component that can write
+                           perform a write only for a customer-agreed available slot
+  4 ResponseWriter (LLM)   reply from the evidence pack only             no tools
+  5 Final response guard   validate every date / slot / status / crew / conflict / booking claim
+                           fail → ONE rewrite → fail again → fixed safe response (escalate)
+```
+
+| Resolution | Meaning |
+|---|---|
+| `approved` | first draft passed the guard |
+| `rewritten` | first draft failed; one rewrite from the evidence pack passed |
+| `safe_response` | rewrite also failed; fixed safe reply sent, escalated |
+| `human_escalation` | Decider confidence < threshold, action `escalate`, or an agent failed; customer gets a holding reply |
+
+Security boundaries: LLMs cannot modify appointments · the Decider does not replace database checks · Python is the only component authorised to write · a booking needs the customer's agreement to a specific available slot · failed validation never silently bypasses the guard · any model error degrades to a human, never to raw model text.
+
+## Code structure (`backend/app`)
+
+```
+main.py              app factory + Mangum Lambda handler          config.py   settings from env
+schemas.py           request/response + DraftRequest, Judgment, EvidencePack, PipelineStep, ...
+api/routes.py        /health /api/config /api/cases /api/datasets /api/decide /api/batch /api/evaluate
+agents/              request_reviewer.py · decider_client.py · response_writer.py · llm.py (Strands/Bedrock helpers)
+tools/scheduling_api.py     the only reader of the system of record and the only writer (dry-run by default)
+services/            scheduling_service.py (orchestrator) · evidence_builder.py · response_guard.py · cases.py
+policies/            availability_rules.py (E3) · conflict_rules.py (E1) · confirmation_rules.py (E4)
+                     intent_rules.py (E2) · data_rules.py (E5) · base.py (RuleContext, vocabularies)
+policy.py            thin compatibility wrapper over policies/
+fixtures/            synthetic_cases.json (10 base use cases) · datasets.json (30 variants) · generate_datasets.py
+backend/tests/       per-rule tests, guard, agents, tool layer, pipeline, API, datasets
+```
+
+### Policy rules
 | Rule | Source case | Check |
 |---|---|---|
-| E1 conflict accuracy | A | a conflict claim needs an ACTIVE other job (completed/cancelled cannot conflict) |
-| E2 customer intent | B | customer says they will update later ⇒ no booking push |
-| E3 availability integrity | C | never affirm a weekday that has no slot (weekday names or ISO dates) |
-| E4 confirmation integrity | D | attendance promise needs crew `confirmed`; "confirmed" needs appointment confirmed |
-| E5 data uncertainty (extension) | – | missing/invalid status fails closed |
+| E1 conflict accuracy | A | a conflict claim needs an ACTIVE other job; completed/cancelled jobs are not conflicts |
+| E2 customer intent | B | customer will update later ⇒ no booking push |
+| E3 availability integrity | C | never affirm a weekday that has no slot (names or ISO dates) |
+| E4 confirmation integrity | D | attendance promise needs crew `confirmed`; "confirmed" needs a confirmed appointment; "booked" needs a performed booking |
+| E5 data uncertainty | – | missing/invalid status fails closed (other rules skipped) |
 
-## About the project (UI page)
-`#/about/problem`, `#/about/solution`, `#/about/design` show the three diagrams in `docs/images/` (served straight from this public GitHub repo via `raw.githubusercontent.com/.../staging/docs/images/`). Each page lists the key points, what is implemented in this build, and what remains on the roadmap. If the branch is renamed or deleted, update `RAW` in `frontend/src/components/AboutPage.tsx`.
+## Modes
+- **Mock** (`mode: "mock"`): no model call. Deterministic reviewer/decider/writer; a fixture's recorded (possibly unsafe) model reply is replayed through the guard.
+- **Live** (`mode: "live"`): three Strands agents on Bedrock (reviewer, decider, writer), then the same Python tools and guard. Default model `amazon.nova-pro-v1:0`.
 
-## UI (three panels)
-**Use cases** (left) → **Response** (middle) → **Evidence** (right: Facts, Policy, Trace, History). The top switch selects **Test Mock Data** (replays each fixture's simulated model output, no model call) or **Test Live Agent (LLM)** (Strands agent on Amazon Bedrock, default `amazon.nova-pro-v1:0`). A *Custom scenario* lets you write a customer message, set the facts and, in mock mode, the simulated reply to test the policy.
-
-## Backend layout (`backend/app`)
-`main.py` (app factory + Mangum `handler`) · `api/routes.py` · `config.py` (settings from env) · `schemas.py` · `policy.py` (rules E1–E5, per-rule results) · `services/{agent,decision,cases}.py`.
+## Configuration (env)
+| Variable | Default | Purpose |
+|---|---|---|
+| `BEDROCK_MODEL_ID` | `amazon.nova-pro-v1:0` | model for all agent roles |
+| `REVIEWER_MODEL_ID` / `DECIDER_MODEL_ID` / `WRITER_MODEL_ID` | = `BEDROCK_MODEL_ID` | per-role override (e.g. a smaller model for reviewer/writer) |
+| `DECIDER_THRESHOLD` | `0.9` | minimum confidence to continue without a human |
+| `DECIDER_REVIEW_CLAIMS` | `false` | extra LLM audit of the draft before the deterministic guard (one more call; can only add findings) |
+| `SCHEDULING_WRITES_ENABLED` | `false` | demo is dry-run; when `true` the tool layer may perform a booking |
+| `CORS_ORIGINS`, `AWS_REGION` | | API CORS, Bedrock region |
 
 ## Run locally
 ```bash
 cd backend && python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt && cp .env.example .env
-pytest -q && python -m app.evaluation
+pytest -q                          # 168 tests, no AWS needed
+python -m app.evaluation           # 10 base fixtures
+python -m app.batch --mode mock    # all 30 datasets through the pipeline (writes docs/dataset-results-mock.*)
 uvicorn app.main:app --reload --port 8000
 cd ../frontend && npm install && npm run dev      # http://localhost:5173
 ```
-Mock mode needs no AWS. Live mode needs AWS credentials with Bedrock access to `BEDROCK_MODEL_ID`.
-
-## Deploy (API Gateway + Lambda + Bedrock + Amplify) — branch `staging`
-```bash
-export AWS_REGION=us-east-1 MODEL_ID=amazon.nova-pro-v1:0
-./deploy.sh        # tests → Lambda package → CloudFormation (HTTP API + Lambda) → React build → Amplify zip deploy → CORS lock
-```
-Needs AWS CLI, Python 3, Node 20+, credentials (no SAM/Docker). Pushing to `staging` runs `.github/workflows/deploy.yml` (secret `AWS_DEPLOY_ROLE_ARN`, OIDC; optional var `BEDROCK_MODEL_ID`).
-
-## Synthetic datasets
-`backend/data/datasets.json` holds 30 synthetic payloads: 3 variants for each of the 10 use cases (`A-001.1` … `E-002.3`), generated by `backend/data/generate_datasets.py`. Each has different wording, dates, statuses and slots plus a recorded model reply and the expected policy outcome. In the UI, pick a use case → **Dataset** chips or **Run all 3 datasets**. From the CLI:
-```bash
-cd backend
-python -m app.batch --mode mock    # replay recorded replies (policy self-check)
-python -m app.batch --mode live    # send every payload to the LLM; writes docs/dataset-results-live.{md,json}
-```
-The agent never sees the expected outcome, the recorded reply or the dataset IDs. Results of the last live run are in `docs/dataset-results-live.md`.
+Live mode needs AWS credentials with Bedrock access to the configured model(s): `python -m app.batch --mode live`.
 
 ## API
-`GET /health`, `GET /api/config`, `GET /api/cases`, `POST /api/decide` body `{"mode":"mock|live","case":{...}}` → decision + `evidence` (facts seen, per-rule results, model, latency, source), `GET /api/datasets[?use_case=]`, `POST /api/batch` (`{mode, use_case}` or `{mode, case_ids}`, max 10), `POST /api/evaluate`.
+`GET /health` · `GET /api/config` · `GET /api/cases` · `GET /api/datasets[?use_case=]` · `POST /api/decide` `{"mode":"mock|live","case":{...}}` · `POST /api/batch` `{mode, use_case | case_ids}` (max 10) · `POST /api/evaluate`.
+
+`/api/decide` returns the proposed draft, `final_reply`, `resolution`, `findings` and `evidence`: facts seen, per-rule results, **pipeline steps with timings**, draft request, Decider judgment (confidence), evidence pack, model, latency and any error.
+
+## UI
+Top bar: **About the project** (Problem · Solution · Design) and **Test lab**. The lab has three panels: use cases and datasets (left), conversation/response (middle), evidence (right: Facts · Pipeline · Policy · Trace · History) with a switch between **Test Mock Data** and **Test Live Agent (LLM)**.
+
+## Deploy (not changed by the pipeline refactor)
+`./deploy.sh` runs the tests, packages `backend/app` + `backend/fixtures` for Lambda, deploys CloudFormation (HTTP API + Lambda), builds and zip-deploys the React app to Amplify, and locks CORS. Pushing to `staging` runs `.github/workflows/deploy.yml` (needs `AWS_DEPLOY_ROLE_ARN`). A live request now makes three model calls (reviewer, decider, writer) plus up to one rewrite, so expect roughly 3–5 s warm; the API Gateway limit is 29 s.
+
+## Status vs the target design
+Implemented: all five pipeline stages, typed JSON judgments with the 0.9 gate, evidence pack, one-rewrite loop, safe response / human escalation, guarded tool layer with dry-run booking, per-role models, automated tests.
+Not implemented: a real scheduling API / appointment database (the tool layer is backed by the synthetic case), a real human-agent queue (escalation returns a holding reply), Amazon Bedrock AgentCore Runtime hosting, authentication and rate limiting beyond API Gateway throttling.
 
 ## Limitations
-- Public, unauthenticated, throttled (5 rps) API: add auth before wider sharing.
-- Phrase checks are heuristics: no explicit-date parsing ("October 19th" vs weekday), paraphrase and negation gaps. Metrics are on synthetic fixtures, not live-LLM quality.
-- Live model quality varies: a small model can answer weakly (Nova Lite answered C-001 with a non-answer) ("checking my schedule"); the policy accepts it because it makes no false promise, but it is unhelpful. Evaluate the chosen model on paraphrased cases before relying on it.
-- Before production: typed slot IDs, structured claims, adversarial corpora, human review, auth, observability, audit retention, idempotency; verify blocked proposals can never reach write APIs.
-
-## Changes vs the uploaded reference
-Added: Mangum Lambda entry point, CloudFormation + deploy script, Strands model mapping via `BEDROCK_MODEL_ID` (the original `Agent()` ignored it), generalised policy rules + 11 tests, live-agent button, missing `vite-env.d.ts` (original frontend did not build), docs page served from the app.
+- Rule checks are heuristics over text (weekday/today/tomorrow, English); explicit calendar dates ("October 19th") and paraphrased promises can slip through. The evidence pack and typed judgments reduce, not remove, that risk.
+- The Decider's confidence is self-reported by the model; the gate is only as good as its calibration. Validate against a labelled set before trusting 0.9.
+- Conflict detection treats any active job as potentially conflicting (job times are not compared).
+- `docs/dataset-results-live.*` were produced by the earlier single-agent version; run `python -m app.batch --mode live` to refresh them for the pipeline (a live request makes 3 model calls, so a full batch takes a few minutes).
+- In live runs the Decider usually reports confidence of exactly 0.90–1.00, so the 0.9 gate rarely fires on clear messages; it mainly catches low-confidence outputs and failures.
+- Before production: typed slot IDs end to end, adversarial test corpora, human review queue, auth, observability, audit retention, idempotency and concurrency control on writes.

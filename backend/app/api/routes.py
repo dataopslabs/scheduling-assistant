@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from ..config import get_settings
 from ..schemas import BatchRequest, BatchResponse, DecideRequest, DecisionResponse
 from ..services import cases as case_repo
-from ..services.decision import decide as run_decision
+from ..services.scheduling_service import run_scheduling_flow as run_decision
 
 router = APIRouter()
 

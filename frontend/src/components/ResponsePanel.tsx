@@ -7,7 +7,6 @@ const ACTION: Record<string, string> = { reply: "Reply", wait: "Wait", escalate:
 
 export default function ResponsePanel({ mode, customer, running, result, error, onRun, model, scenario, custom, variants, variantId, onVariant, onRunAll, batch, batchRunning, onInspect }: Props) {
   const live = mode === "live";
-  const blocked = result && !result.acceptable;
   return (
     <section className="panel mid" aria-label="Response">
       <div className="phead">
@@ -65,18 +64,27 @@ export default function ResponsePanel({ mode, customer, running, result, error, 
             <div className="bubble prop">{result.proposed_decision.reply}</div>
           </div>
 
-          <div className={"verdict " + (result.acceptable ? "ok" : "bad")}>
-            <div className="vic">{result.acceptable ? "✓" : "!"}</div>
-            <div>
-              <b>{result.acceptable ? "Approved by policy" : "Blocked by policy"}</b>
-              <p>{result.acceptable ? "Every claim in the proposal is supported by the scheduling facts." : "The proposal was replaced with a safe alternative."}</p>
-              {result.findings.map((f) => <div className="finding" key={f.rule_id}><span className="rid">{f.rule_id.split("_")[0]}</span>{f.reason}</div>)}
-            </div>
-          </div>
+          {(() => {
+            const V: Record<string, [string, string, string, string]> = {
+              approved: ["ok", "✓", "Approved by policy", "Every claim in the proposal is supported by the evidence pack."],
+              rewritten: ["bad", "!", "Blocked, then rewritten", "The first draft failed validation. One rewrite from the evidence pack passed the final guard."],
+              safe_response: ["bad", "!", "Blocked, safe response sent", "The rewrite also failed validation, so a fixed safe response replaced it."],
+              human_escalation: ["hold", "↗", "Routed to a human", "Decider confidence was below the threshold (or an agent failed). The customer gets a holding reply."],
+            };
+            const [cls, ic, title, sub] = V[result.resolution] ?? V.approved;
+            return (
+              <div className={"verdict " + cls}>
+                <div className="vic">{ic}</div>
+                <div>
+                  <b>{title}</b><p>{sub}</p>
+                  {result.findings.map((f) => <div className="finding" key={f.rule_id}><span className="rid">{f.rule_id.split("_")[0]}</span>{f.reason}</div>)}
+                </div>
+              </div>);
+          })()}
 
           <div className="turn right">
             <div className="who">Sent to customer<span className="pillgrey">{ACTION[result.final_action]}</span></div>
-            <div className={"bubble final" + (blocked ? " replaced" : "")}>{result.final_reply}</div>
+            <div className={"bubble final" + (result.resolution !== "approved" ? " replaced" : "")}>{result.final_reply}</div>
             <div className="foot">{result.note}</div>
           </div>
         </>)}

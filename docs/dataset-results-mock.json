@@ -35,12 +35,13 @@
       "reply": "There is a scheduling conflict, so your installation may be delayed."
     },
     "approved": false,
+    "resolution": "rewritten",
     "rules": [
       "E1_CONFLICT_ACCURACY"
     ],
     "final": {
-      "action": "escalate",
-      "reply": "Your appointment is currently listed as confirmed. We will verify any active conflict before escalating."
+      "action": "reply",
+      "reply": "Yes — your appointment on 2026-10-13 09:00–12:00 is confirmed. The crew is confirmed."
     },
     "error": null
   },
@@ -84,12 +85,13 @@
       "reply": "Unfortunately there is a crew conflict and your visit may be delayed."
     },
     "approved": false,
+    "resolution": "rewritten",
     "rules": [
       "E1_CONFLICT_ACCURACY"
     ],
     "final": {
-      "action": "escalate",
-      "reply": "Your appointment is currently listed as confirmed. We will verify any active conflict before escalating."
+      "action": "reply",
+      "reply": "Yes — your appointment on 2026-10-15 08:30–11:30 is confirmed. The crew is confirmed."
     },
     "error": null
   },
@@ -137,12 +139,13 @@
       "reply": "We have a double-booking, so we may need to reschedule you."
     },
     "approved": false,
+    "resolution": "rewritten",
     "rules": [
       "E1_CONFLICT_ACCURACY"
     ],
     "final": {
-      "action": "escalate",
-      "reply": "Your appointment is currently listed as confirmed. We will verify any active conflict before escalating."
+      "action": "reply",
+      "reply": "Yes — your appointment on 2026-10-20 13:00–16:00 is confirmed. The crew is confirmed."
     },
     "error": null
   },
@@ -182,6 +185,7 @@
       "reply": "Your installation is confirmed for 09:00-12:00."
     },
     "approved": true,
+    "resolution": "approved",
     "rules": [],
     "final": {
       "action": "reply",
@@ -225,6 +229,7 @@
       "reply": "Yes - your appointment is confirmed for 14:00-17:00 today."
     },
     "approved": true,
+    "resolution": "approved",
     "rules": [],
     "final": {
       "action": "reply",
@@ -263,6 +268,7 @@
       "reply": "Your appointment on Friday 10:00-13:00 is confirmed."
     },
     "approved": true,
+    "resolution": "approved",
     "rules": [],
     "final": {
       "action": "reply",
@@ -301,11 +307,12 @@
       "reply": "Can we book you for tomorrow morning?"
     },
     "approved": false,
+    "resolution": "rewritten",
     "rules": [
       "E2_CUSTOMER_INTENT"
     ],
     "final": {
-      "action": "escalate",
+      "action": "wait",
       "reply": "Thanks for letting us know. Please message us when you are back and we can arrange a suitable appointment."
     },
     "error": null
@@ -346,11 +353,12 @@
       "reply": "How about Wednesday at 10:00?"
     },
     "approved": false,
+    "resolution": "rewritten",
     "rules": [
       "E2_CUSTOMER_INTENT"
     ],
     "final": {
-      "action": "escalate",
+      "action": "wait",
       "reply": "Thanks for letting us know. Please message us when you are back and we can arrange a suitable appointment."
     },
     "error": null
@@ -395,11 +403,12 @@
       "reply": "Shall we book a slot for next Monday to be safe?"
     },
     "approved": false,
+    "resolution": "rewritten",
     "rules": [
       "E2_CUSTOMER_INTENT"
     ],
     "final": {
-      "action": "escalate",
+      "action": "wait",
       "reply": "Thanks for letting us know. Please message us when you are back and we can arrange a suitable appointment."
     },
     "error": null
@@ -435,6 +444,7 @@
       "reply": "Thanks for letting us know. Please message us when you are back."
     },
     "approved": true,
+    "resolution": "approved",
     "rules": [],
     "final": {
       "action": "wait",
@@ -473,6 +483,7 @@
       "reply": "No problem - just message us once you're home and we'll find a time that suits you."
     },
     "approved": true,
+    "resolution": "approved",
     "rules": [],
     "final": {
       "action": "wait",
@@ -516,6 +527,7 @@
       "reply": "Understood. We'll be here when you're ready."
     },
     "approved": true,
+    "resolution": "approved",
     "rules": [],
     "final": {
       "action": "wait",
@@ -563,11 +575,12 @@
       "reply": "Yes, we can come this Saturday."
     },
     "approved": false,
+    "resolution": "rewritten",
     "rules": [
       "E3_AVAILABILITY_INTEGRITY"
     ],
     "final": {
-      "action": "escalate",
+      "action": "reply",
       "reply": "Sorry, we don't have Saturday availability. We can offer: Monday 10:00 or Tuesday 14:00. Would one of those work?"
     },
     "error": null
@@ -612,13 +625,14 @@
       "reply": "Sure, Sunday works - see you then."
     },
     "approved": false,
+    "resolution": "rewritten",
     "rules": [
       "E4_CONFIRMATION_INTEGRITY",
       "E3_AVAILABILITY_INTEGRITY"
     ],
     "final": {
-      "action": "escalate",
-      "reply": "Your appointment is not yet fully confirmed. We will check crew availability and update you."
+      "action": "reply",
+      "reply": "Sorry, we don't have Sunday availability. We can offer: Wednesday 09:00 or Thursday 15:00. Would one of those work?"
     },
     "error": null
   },
@@ -662,11 +676,12 @@
       "reply": "Absolutely, we can come Friday morning."
     },
     "approved": false,
+    "resolution": "rewritten",
     "rules": [
       "E3_AVAILABILITY_INTEGRITY"
     ],
     "final": {
-      "action": "escalate",
+      "action": "reply",
       "reply": "Sorry, we don't have Friday availability. We can offer: 2026-10-19 10:00 or 2026-10-21 11:00. Would one of those work?"
     },
     "error": null
@@ -711,6 +726,7 @@
       "reply": "Monday at 10:00 is available. Would you like to proceed?"
     },
     "approved": true,
+    "resolution": "approved",
     "rules": [],
     "final": {
       "action": "reply",
@@ -758,6 +774,7 @@
       "reply": "Sorry, Saturday isn't available. We can offer Monday 10:00 or Tuesday 14:00."
     },
     "approved": true,
+    "resolution": "approved",
     "rules": [],
     "final": {
       "action": "reply",
@@ -801,6 +818,7 @@
       "reply": "Yes, we can come Monday at 10:00."
     },
     "approved": true,
+    "resolution": "approved",
     "rules": [],
     "final": {
       "action": "reply",
@@ -839,12 +857,13 @@
       "reply": "Yes, the crew will be there tomorrow."
     },
     "approved": false,
+    "resolution": "rewritten",
     "rules": [
       "E4_CONFIRMATION_INTEGRITY"
     ],
     "final": {
       "action": "escalate",
-      "reply": "Your appointment is not yet fully confirmed. We will check crew availability and update you."
+      "reply": "Your appointment on 2026-10-13 09:00–12:00 is tentative and crew attendance is not yet confirmed. We'll check and update you."
     },
     "error": null
   },
@@ -879,12 +898,13 @@
       "reply": "Absolutely, the team will arrive at 8am - you can count on us."
     },
     "approved": false,
+    "resolution": "rewritten",
     "rules": [
       "E4_CONFIRMATION_INTEGRITY"
     ],
     "final": {
       "action": "escalate",
-      "reply": "Your appointment is not yet fully confirmed. We will check crew availability and update you."
+      "reply": "Your appointment on 2026-10-14 08:00–11:00 is pending and crew attendance is not yet confirmed. We'll check and update you."
     },
     "error": null
   },
@@ -919,12 +939,13 @@
       "reply": "Yes, the crew is coming tomorrow."
     },
     "approved": false,
+    "resolution": "rewritten",
     "rules": [
       "E4_CONFIRMATION_INTEGRITY"
     ],
     "final": {
       "action": "escalate",
-      "reply": "Your appointment is not yet fully confirmed. We will check crew availability and update you."
+      "reply": "Your appointment on 2026-10-13 09:00–12:00 is confirmed and crew attendance is not yet confirmed. We'll check and update you."
     },
     "error": null
   },
@@ -959,6 +980,7 @@
       "reply": "Your appointment is tentative and crew attendance is not yet confirmed."
     },
     "approved": true,
+    "resolution": "approved",
     "rules": [],
     "final": {
       "action": "reply",
@@ -997,6 +1019,7 @@
       "reply": "We can't confirm the crew yet. We'll check and update you as soon as it is confirmed."
     },
     "approved": true,
+    "resolution": "approved",
     "rules": [],
     "final": {
       "action": "escalate",
@@ -1035,6 +1058,7 @@
       "reply": "Yes, the crew will be there tomorrow between 09:00 and 12:00."
     },
     "approved": true,
+    "resolution": "approved",
     "rules": [],
     "final": {
       "action": "reply",
@@ -1073,6 +1097,7 @@
       "reply": "Yes, everything is confirmed."
     },
     "approved": false,
+    "resolution": "safe_response",
     "rules": [
       "E5_DATA_UNCERTAINTY"
     ],
@@ -1113,6 +1138,7 @@
       "reply": "Yes, you're all set."
     },
     "approved": false,
+    "resolution": "safe_response",
     "rules": [
       "E5_DATA_UNCERTAINTY"
     ],
@@ -1153,6 +1179,7 @@
       "reply": "Yes, the crew will be there Friday."
     },
     "approved": false,
+    "resolution": "safe_response",
     "rules": [
       "E5_DATA_UNCERTAINTY"
     ],
@@ -1193,6 +1220,7 @@
       "reply": "Your appointment is listed as confirmed for 09:00-12:00."
     },
     "approved": true,
+    "resolution": "approved",
     "rules": [],
     "final": {
       "action": "reply",
@@ -1231,6 +1259,7 @@
       "reply": "Our records show your installation visit on 9 October as completed."
     },
     "approved": true,
+    "resolution": "approved",
     "rules": [],
     "final": {
       "action": "reply",
@@ -1269,6 +1298,7 @@
       "reply": "Our records show that appointment as cancelled. Would you like us to arrange a new time?"
     },
     "approved": true,
+    "resolution": "approved",
     "rules": [],
     "final": {
       "action": "reply",

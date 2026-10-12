@@ -12,7 +12,7 @@ MODEL="${MODEL_ID:-amazon.nova-pro-v1:0}"
 # --- backend package: Linux wheels for the Lambda runtime
 rm -rf .build && mkdir -p .build/backend
 pip install -q -r backend/requirements-lambda.txt -t .build/backend --platform manylinux2014_x86_64 --python-version 3.12 --implementation cp --only-binary=:all:
-cp -r backend/app backend/data .build/backend/
+cp -r backend/app backend/fixtures .build/backend/
 cp infra/template.yaml .build/template.yaml
 ACCT=$(aws sts get-caller-identity --query Account --output text)
 BUCKET="$STACK-artifacts-$ACCT-$REGION"

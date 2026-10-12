@@ -21,20 +21,20 @@ def run(mode: str) -> list[dict]:
         r = decide(DecideRequest(mode=mode, case=case), get_settings())
         rows.append({"case_id": case.case_id, "use_case": case.use_case, "title": case.title, "customer_message": case.customer_message,
                      "payload": r.evidence.facts, "expected": d["expected"], "source": r.evidence.source, "model_id": r.evidence.model_id,
-                     "latency_ms": r.evidence.latency_ms, "proposed": r.proposed_decision.model_dump(), "approved": r.acceptable,
+                     "latency_ms": r.evidence.latency_ms, "proposed": r.proposed_decision.model_dump(), "approved": r.resolution == "approved", "resolution": r.resolution,
                      "rules": [f.rule_id for f in r.findings], "final": {"action": r.final_action, "reply": r.final_reply},
                      "error": r.evidence.error})
-        print(f"{case.case_id:6} {r.evidence.source:16} {'OK ' if r.acceptable else 'BLK'} {r.evidence.latency_ms:5}ms  {r.proposed_decision.reply[:80]}")
+        print(f"{case.case_id:6} {r.evidence.source:16} {r.resolution:16} {r.evidence.latency_ms:5}ms  {r.proposed_decision.reply[:80]}")
     return rows
 
 
 def markdown(rows: list[dict], mode: str) -> str:
     n = len(rows); ok = sum(r["approved"] for r in rows)
-    lines = [f"# Synthetic dataset run ({mode})", "", f"{n} payloads · {ok} approved · {n - ok} blocked by policy · model `{rows[0]['model_id'] or 'n/a (mock)'}`", "",
+    lines = [f"# Synthetic dataset run ({mode})", "", f"{n} payloads · {ok} approved as drafted · {n - ok} rewritten, replaced or sent to a human · model `{rows[0]['model_id'] or 'n/a (mock)'}`", "",
              "| Dataset | Customer message | Model proposal | Policy | Final reply |", "|---|---|---|---|---|"]
     for r in rows:
         esc = lambda s: str(s).replace("|", "\\|").replace("\n", " ")
-        verdict = "approved" if r["approved"] else "blocked " + ", ".join(x.split("_")[0] for x in r["rules"])
+        verdict = r["resolution"] + ("" if r["approved"] else " (" + ", ".join(x.split("_")[0] for x in r["rules"]) + ")")
         lines.append(f"| {r['case_id']} | {esc(r['customer_message'])} | {esc(r['proposed']['reply'])} | {verdict} | {esc(r['final']['reply'])} |")
     return "\n".join(lines) + "\n"
 

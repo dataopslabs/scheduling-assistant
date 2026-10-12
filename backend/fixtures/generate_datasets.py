@@ -1,5 +1,5 @@
-"""Generates data/datasets.json: >=3 synthetic variants for each of the 10 base use cases.
-Run: python data/generate_datasets.py   (all data is synthetic; deterministic, hand-authored)"""
+"""Generates fixtures/datasets.json: >=3 synthetic variants for each of the 10 base use cases.
+Run: python fixtures/generate_datasets.py   (all data is synthetic; deterministic, hand-authored)"""
 import json
 from pathlib import Path
 

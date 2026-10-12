@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from .schemas import SchedulingCase
 from .policy import validate
-DATA=Path(__file__).resolve().parent.parent/"data"/"cases.json"
+DATA=Path(__file__).resolve().parent.parent/"fixtures"/"synthetic_cases.json"
 def run_evaluation():
     fixtures=json.loads(DATA.read_text())
     results=[]; unsafe=unsafe_accepted=valid=valid_rejected=0
